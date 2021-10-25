@@ -1,4 +1,7 @@
 from PySide6.QtWidgets import QTabWidget, QWidget, QTableWidget, QGridLayout
+from controller.db_manager import session
+from models.models import DayCalOwner
+from models.models import DayCalValues
 
 
 # 일일 정산서 계산서 위젯
@@ -10,19 +13,23 @@ class DayCal(QWidget):
 
     # ui 초기화
     def init_ui(self):
-        # 테이블
-        table = QTableWidget()
-
-        # 예시코드
-        table.setColumnCount(3)
-        table.setRowCount(8)
-        table.setHorizontalHeaderLabels(['화주1', '화주2', '화주3'])
+        # 화주 목록
+        owners = [q.name for q in session.query(DayCalOwner)]
+        input_table = QTableWidget()
+        input_table.setColumnCount(len(owners))
+        input_table.setHorizontalHeaderLabels(owners)
+        input_table.setRowCount(19)
+        input_table.setVerticalHeaderLabels([
+            '강동총금액', '강동운임', '강동하차비', '강동수수료 4%', '공제후금액', '',
+            '중매수수료 5%', '화주운임', '화주하차비', '상장수수료 4%', '강동선지급금', '공제합계', '선지급금포함 공제합계', '',
+            '경매 사무실입금', '가라경매 강동입금', '직접지출', '우리경매', '강동사입'
+                                       ])
 
         # 그리드 레이아웃
         grid = QGridLayout()
 
         # 테이블위젯 추가
-        grid.addWidget(table, 0, 0)
+        grid.addWidget(input_table, 0, 0)
 
         # 레이아웃 세팅
         self.setLayout(grid)
