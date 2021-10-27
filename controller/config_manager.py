@@ -2,7 +2,7 @@ from json import dump, load, JSONDecodeError
 
 
 # config 파일의 내용을 불러와 geometry 값을 수정하여 저장
-def set_geometry(geometry):
+def set_geometry(geometry, is_maximized):
     with open('config.json', 'w+') as config_file:
         try:
             config = load(config_file)
@@ -10,6 +10,7 @@ def set_geometry(geometry):
             config = {}
 
         config['geometry'] = {
+            'max': is_maximized,
             'x': geometry.x(),
             'y': geometry.y(),
             'height': geometry.height(),
@@ -28,4 +29,4 @@ def get_geometry():
                 return None
     except FileNotFoundError:
         return None
-    return [config['geometry'][key] for key in ['x', 'y', 'width', 'height']]
+    return [config['geometry'][key] for key in ['max', 'x', 'y', 'width', 'height']]

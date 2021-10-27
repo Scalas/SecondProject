@@ -65,7 +65,9 @@ class MainWindow(QMainWindow):
         if not geometry:
             self.init_geometry()
         else:
-            self.setGeometry(*geometry)
+            self.setGeometry(geometry[1], geometry[2], geometry[3], geometry[4])
+            if geometry[0]:
+                self.showMaximized()
 
         # 윈도우를 화면에 띄운다
         self.show()
@@ -84,7 +86,7 @@ class MainWindow(QMainWindow):
     # 종료시 윈도우의 위치와 크기를 설정파일에 저장
     def closeEvent(self, event):
         QMainWindow.closeEvent(self, event)
-        set_geometry(self.geometry())
+        set_geometry(self.normalGeometry(), self.isMaximized())
 
 
 # 시간레이블 클래스(QLabel 상속)
