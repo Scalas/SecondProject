@@ -1,15 +1,19 @@
-from PySide6.QtCore import QDateTime, QTimer
+from PySide6.QtCore import QDateTime, QTimer, Signal, Slot, QObject
 from PySide6.QtGui import QIcon, QAction
-from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QGridLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QGridLayout, QDialog, QPlainTextEdit, QPushButton, QTabWidget
+from sqlalchemy.exc import IntegrityError
 
 from controller.config_manager import set_geometry, get_geometry
+from controller.db_manager import session
+from models.models import DayCalOwner
 from widgets.docs_window import DocTab
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow, QObject):
     # 생성자
     def __init__(self):
         super().__init__()
+        self.central_widget = CentralWidget()
         self.init_ui()
 
     # ui 초기화
@@ -38,21 +42,16 @@ class MainWindow(QMainWindow):
         file_menu.addAction(exit_action)
         tool_bar.addAction(exit_action)
 
-        # 중앙 위젯
-        central_widget = QWidget()
-        central_widget.setStyleSheet("background-color: #FFFFFF")
+        # 화주추가 액션 추가
+        create_owner = QAction(QIcon('src/img/create_owner_icon.png'), '화주 추가', self)
+        create_owner.setShortcut('Ctrl+Shift+A')
+        create_owner.setStatusTip('화주 추가')
+        create_owner.triggered.connect(self.create_owner)
+        file_menu.addAction(create_owner)
+        tool_bar.addAction(create_owner)
 
-        # 그리드 레이아웃
-        grid = QGridLayout()
-
-        # 탭 위젯 추가
-        grid.addWidget(DocTab(), 0, 0)
-
-        # 중앙 위젯에 그리드 레이아웃 적용
-        central_widget.setLayout(grid)
-
-        # 앱의 Central Widget 에 central_widget 설정
-        self.setCentralWidget(central_widget)
+        # 앱의 Central Widget 에 self.central_widget 설정
+        self.setCentralWidget(self.central_widget)
 
         # 윈도우 타이틀 설정
         self.setWindowTitle('SSBS')
@@ -88,6 +87,35 @@ class MainWindow(QMainWindow):
         QMainWindow.closeEvent(self, event)
         set_geometry(self.normalGeometry(), self.isMaximized())
 
+    # 화주 추가
+    def create_owner(self):
+        # 다이얼로그 위젯 생성
+        create_owner_dialog = Dialog()
+
+        # 화주 이름을 입력받기 위한 다이얼로그 ui 세팅
+        grid = QGridLayout()
+        input_name = QPlainTextEdit()
+        input_name.setPlaceholderText('화주 이름')
+        submit = QPushButton('추가')
+        submit.clicked.connect(create_owner_dialog.close)
+        grid.addWidget(QLabel('화주 이름: '), 0, 0, 1, 1)
+        grid.addWidget(input_name, 0, 1, 1, 2)
+        grid.addWidget(submit, 1, 0, 1, 3)
+        create_owner_dialog.setLayout(grid)
+
+        # 다이얼로그를 modal 하게 표시
+        create_owner_dialog.show_modal()
+
+        # 다이얼로그에서 입력이 완료되면 입력받은 이름으로 화주 추가
+        name = input_name.toPlainText()
+        new_owner = DayCalOwner(name)
+        try:
+            session.add(new_owner)
+            session.commit()
+            self.central_widget.doc_tab.tab1.owner_added(name)
+        except IntegrityError:
+            self.statusBar().showMessage('>> 이미 등록된 화주입니다.')
+
 
 # 시간레이블 클래스(QLabel 상속)
 # 1초마다 현재 날짜/시간을 갱신하여 표시하는 레이블
@@ -101,3 +129,36 @@ class TimeLabel(QLabel):
 
     def timeout(self):
         self.setText(QDateTime.currentDateTime().toString('yyyy년 MM월 dd일 ddd hh:mm:ss'))
+
+
+class CentralWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.doc_tab = DocTab()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setStyleSheet("background-color: #FFFFFF")
+
+        # 그리드 레이아웃
+        grid = QGridLayout()
+
+        # 탭 위젯 추가
+        grid.addWidget(self.doc_tab, 0, 0)
+
+        # 중앙 위젯에 그리드 레이아웃 적용
+        self.setLayout(grid)
+
+
+# 다이얼로그(QDialog 상속)
+class Dialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle('화주 추가')
+        self.setGeometry(500, 500, 300, 50)
+
+    def show_modal(self):
+        return super().exec_()

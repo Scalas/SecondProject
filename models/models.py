@@ -1,18 +1,20 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime
 from controller.db_manager import Base
 
 
+# 화주 모델
 class DayCalOwner(Base):
-    __tablename__ = 'DAYCAL_OWNER'
+    __tablename__ = 'daycal_owner'
     name = Column(String, primary_key=True)
 
     def __init__(self, name):
         self.name = name
 
 
-class DayCalValues(Base):
-    __tablename__ = 'DAYCAL_VALUES'
-    datetime = Column(String, primary_key=True)
+# 화주별 일일정산 데이터 모델
+class DayCalOwnerValues(Base):
+    __tablename__ = 'daycal_owner_values'
+    datetime = Column(DateTime, primary_key=True)
     owner_name = Column(String, primary_key=True)
     kd_total = Column(Integer)
     kd_fare = Column(Integer)
@@ -26,3 +28,17 @@ class DayCalValues(Base):
     def __init__(self, datetime, owner):
         self.datetime = datetime
         self.owner = owner
+
+
+# 일일정산서에 입력될 기타 데이터 모델
+class DayCalOtherValues(Base):
+    __tablename__ = 'daycal_other_values'
+    datetime = Column(DateTime, primary_key=True)
+    office_deposit = Column(Integer)
+    kd_deposit = Column(Integer)
+    direct_exp = Column(Integer)
+    our_auc = Column(Integer)
+    kd_buy = Column(Integer)
+
+    def __init__(self, datetime):
+        self.datetime = datetime
