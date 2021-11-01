@@ -50,6 +50,14 @@ class MainWindow(QMainWindow, QObject):
         file_menu.addAction(create_owner)
         tool_bar.addAction(create_owner)
 
+        # 화주삭제 액션 추가
+        delete_owner = QAction(QIcon('src/img/delete_owner_icon.png'), '화주 삭제', self)
+        delete_owner.setShortcut('Ctrl+Shift+A')
+        delete_owner.setStatusTip('화주 추가')
+        delete_owner.triggered.connect(self.delete_owner)
+        #file_menu.addAction(delete_owner)
+        #tool_bar.addAction(delete_owner)
+
         # 앱의 Central Widget 에 self.central_widget 설정
         self.setCentralWidget(self.central_widget)
 
@@ -91,6 +99,8 @@ class MainWindow(QMainWindow, QObject):
     def create_owner(self):
         # 다이얼로그 위젯 생성
         create_owner_dialog = Dialog()
+        create_owner_dialog.setWindowTitle('화주 추가')
+        create_owner_dialog.setGeometry(500, 500, 300, 50)
 
         # 화주 이름을 입력받기 위한 다이얼로그 ui 세팅
         grid = QGridLayout()
@@ -115,6 +125,10 @@ class MainWindow(QMainWindow, QObject):
             self.central_widget.doc_tab.tab1.owner_added(name)
         except IntegrityError:
             self.statusBar().showMessage('>> 이미 등록된 화주입니다.')
+
+    # 화주 삭제
+    def delete_owner(self):
+        pass
 
 
 # 시간레이블 클래스(QLabel 상속)
@@ -154,11 +168,6 @@ class CentralWidget(QWidget):
 class Dialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.init_ui()
-
-    def init_ui(self):
-        self.setWindowTitle('화주 추가')
-        self.setGeometry(500, 500, 300, 50)
 
     def show_modal(self):
         return super().exec_()
