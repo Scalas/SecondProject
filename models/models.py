@@ -5,7 +5,8 @@ from controller.db_manager import Base
 # 화주 모델
 class DayCalOwner(Base):
     __tablename__ = 'daycal_owner'
-    name = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
 
     def __init__(self, name):
         self.name = name

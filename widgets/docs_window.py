@@ -8,9 +8,10 @@ class DayCal(QWidget):
     # 생성자
     def __init__(self):
         super().__init__()
-        self.owners = [q.name for q in session.query(DayCalOwner)]
+        self.owners = [q.name for q in session.query(DayCalOwner).order_by(DayCalOwner.id)]
         self.num_of_owners = len(self.owners)
         self.input_table = QTableWidget()
+        self.input_table.setParent(self)
         self.init_ui()
 
     # ui 초기화
@@ -40,6 +41,18 @@ class DayCal(QWidget):
         self.input_table.insertColumn(self.input_table.columnCount())
         self.input_table.setHorizontalHeaderItem(self.input_table.columnCount()-1, QTableWidgetItem(added_user))
 
+    # 화주 삭제 반영
+    def owner_removed(self, removed_name):
+        idx = self.owners.index(removed_name)
+        self.input_table.removeColumn(idx)
+        del self.owners[idx]
+
+    # 화주 이름 변경 반영
+    def owner_modified(self, org_name, chg_name):
+        idx = self.owners.index(org_name)
+        self.owners[idx] = chg_name
+        self.input_table.setHorizontalHeaderItem(idx, QTableWidgetItem(chg_name))
+
 
 # 대차대조표 위젯
 class BalancedSheet(QWidget):
@@ -56,8 +69,11 @@ class DocTab(QTabWidget):
     def __init__(self):
         super().__init__()
         self.tab1 = DayCal()
+        self.tab1.setParent(self)
         self.tab2 = BalancedSheet()
+        self.tab2.setParent(self)
         self.tab3 = SH()
+        self.tab3.setParent(self)
         self.init_ui()
 
     def init_ui(self):
