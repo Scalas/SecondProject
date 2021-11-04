@@ -1,14 +1,16 @@
+from datetime import date
+
 from PySide6.QtWidgets import QLabel, QGridLayout, QPushButton, QLineEdit
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from controller.db_manager import session
-from models.models import DayCalOwner
+from models.db_models import DayCalOwner, DayCalOwnerValues, DayCalOtherValues
 from widgets.simple import Dialog
 
 
 # 화주 추가
-def create_owner(main_window, table_widget, name_data=None):
+def create_owner(main_window, table_view, name_data=None):
     # 입력받은 이름이 이미 있는 경우
     if name_data:
         name = name_data
@@ -46,9 +48,13 @@ def create_owner(main_window, table_widget, name_data=None):
     new_owner = DayCalOwner(name)
     try:
         session.add(new_owner)
+        session.flush()
+        session.refresh(new_owner)
+        today_values = DayCalOwnerValues(date.today(), new_owner.id)
+        session.add(today_values)
         session.commit()
-        table_widget.owner_added(name)
-    except DatabaseError:
+        table_view.owner_added(name)
+    except ValueError:
         main_window.statusBar().showMessage('>> 이미 등록된 화주입니다.')
         session.rollback()
 
@@ -92,6 +98,8 @@ def delete_owner(main_window, table_widget, name_data=None):
     try:
         target = session.query(DayCalOwner).filter(DayCalOwner.name == name).first()
         session.delete(target)
+        target_data = session.query(DayCalOwnerValues).filter(DayCalOwnerValues.owner_id == target.id).first()
+        session.delete(target_data)
         session.commit()
         table_widget.owner_removed(target.name)
     except UnmappedInstanceError:
@@ -147,3 +155,16 @@ def modify_owner(main_window, table_widget, name_data=None):
     except DatabaseError:
         main_window.statusBar().showMessage('>> 이미 등록된 화주입니다.')
         session.rollback()
+
+
+# 화주 명단 가져오기
+def get_daycal_owner_list():
+    return [q.name for q in session.query(DayCalOwner).order_by(DayCalOwner.id)]
+
+
+def get_daycal_owner_values():
+    return session.query(DayCalOwnerValues.kd_total, DayCalOwnerValues.kd_fare, DayCalOwnerValues.kd_drop, DayCalOwnerValues.kd_fee4, DayCalOwnerValues.after_deduction, DayCalOwnerValues.match_fee5, DayCalOwnerValues.owner_fare, DayCalOwnerValues.owner_drop, DayCalOwnerValues.listing_fee4, DayCalOwnerValues.kd_pre, DayCalOwnerValues.deduction_total, DayCalOwnerValues.total_include_pre).filter(DayCalOwnerValues.date == date.today()).order_by(DayCalOwnerValues.owner_id)
+
+
+def get_daycal_other_values():
+    return session.query(DayCalOtherValues).filter(DayCalOtherValues.date == date.today()).all()
