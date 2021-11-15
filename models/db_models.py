@@ -58,35 +58,10 @@ class DayCalOwnerValues(Base):
         self.deduction_total = 0
         self.total_include_pre = 0
 
-    def get_date(self):
-        return self.date
-
-    def get_owner_id(self):
-        return self.owner_id
-
-    def get_kd_total(self):
-        return self.kd_total
-
-    def get_kd_fare(self):
-        return self.kd_fare
-
-    def get_kd_drop(self):
-        return self.kd.drop
-
-    def get_match_fee5(self):
-        return self.match_fee5
-
-    def get_owner_fare(self):
-        return self.owner_fare
-
-    def get_owner_drop(self):
-        return self.owner_drop
-
-    def get_listing_fee4(self):
-        return self.listing_fee4
-
-    def get_kd_pre(self):
-        return self.kd_pre
+    def to_list(self):
+        return [self.kd_total, self.kd_fare, self.kd_drop, self.kd_fee4, self.after_deduction,
+                self.match_fee5, self.owner_fare, self.owner_drop, self.listing_fee4, self.kd_pre,
+                self.deduction_total, self.total_include_pre]
 
 
 # 일일정산서에 입력될 기타 데이터 모델

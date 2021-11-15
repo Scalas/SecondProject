@@ -3,6 +3,7 @@ from datetime import date
 from PySide6.QtWidgets import QLabel, QGridLayout, QPushButton, QLineEdit
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.exc import UnmappedInstanceError
+from sqlalchemy import and_
 
 from controller.db_manager import session
 from models.db_models import DayCalOwner, DayCalOwnerValues, DayCalOtherValues
@@ -98,7 +99,7 @@ def delete_owner(main_window, table_widget, name_data=None):
     try:
         target = session.query(DayCalOwner).filter(DayCalOwner.name == name).first()
         session.delete(target)
-        target_data = session.query(DayCalOwnerValues).filter(DayCalOwnerValues.owner_id == target.id).first()
+        target_data = session.query(DayCalOwnerValues).filter(and_(DayCalOwnerValues.owner_id == target.id, DayCalOwnerValues.date == date.today())).first()
         session.delete(target_data)
         session.commit()
         table_widget.owner_removed(target.name)
@@ -163,7 +164,17 @@ def get_daycal_owner_list():
 
 
 def get_daycal_owner_values():
-    return session.query(DayCalOwnerValues.kd_total, DayCalOwnerValues.kd_fare, DayCalOwnerValues.kd_drop, DayCalOwnerValues.kd_fee4, DayCalOwnerValues.after_deduction, DayCalOwnerValues.match_fee5, DayCalOwnerValues.owner_fare, DayCalOwnerValues.owner_drop, DayCalOwnerValues.listing_fee4, DayCalOwnerValues.kd_pre, DayCalOwnerValues.deduction_total, DayCalOwnerValues.total_include_pre).filter(DayCalOwnerValues.date == date.today()).order_by(DayCalOwnerValues.owner_id)
+    values = []
+    today = date.today()
+    for owner_id in session.query(DayCalOwner.id).order_by(DayCalOwner.id):
+        id = owner_id[0]
+        value = session.query(DayCalOwnerValues).filter(and_(DayCalOwnerValues.owner_id == id, DayCalOwnerValues.date == today)).first()
+        if not value:
+            value = DayCalOwnerValues(today, id)
+            session.add(value)
+            session.commit()
+        values.append(value.to_list())
+    return values
 
 
 def get_daycal_other_values():

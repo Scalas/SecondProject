@@ -12,7 +12,7 @@ class DayCalTableModel(QAbstractTableModel):
         self.horizontal_header = horizontal_header
         self.vertical_header = vertical_header
         self.row_count = 12
-        self.column_count = len(self.table_data)
+        self.column_count = len(self.horizontal_header)
 
     def rowCount(self, parent):
         return self.row_count
