@@ -1,11 +1,9 @@
 from datetime import date
 
-from PySide6.QtWidgets import QTabWidget, QWidget, QTableWidget, QGridLayout, QTableWidgetItem, QTableView
+from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView
 
 from controller import actions
-from controller.db_manager import init_db, session
-from models.table_models import DayCalTableModel
-from models.db_models import DayCalOwnerValues
+from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
 
 
 # 일일 정산서 계산서 위젯
@@ -14,19 +12,36 @@ class DayCal(QWidget):
     def __init__(self):
         super().__init__()
         self.input_table = QTableView()
-        self.input_table.setParent(self)
+        self.other_table = QTableView()
+        self.result_table = QTableView()
         self.init_ui()
 
     # ui 초기화
     def init_ui(self):
-        self.data_model = DayCalTableModel(self, actions.get_daycal_owner_list(), ['강동총금액', '강동운임', '강동하차비', '강동수수료 4%', '공제후 금액', '중매수수료 5%', '화주운임', '화주하차비', '상장수수료 4%', '강동선지급금', '공제합계', '선지급금포함 공제합계'], actions.get_daycal_owner_values())
+        # 화주별 데이터 입력테이블
+        owner_list = actions.get_daycal_owner_list()
+        owner_data = actions.get_daycal_owner_values()
+        self.data_model = DayCalTableModel(self, owner_list, owner_data)
         self.input_table.setModel(self.data_model)
+
+        # 기타 데이터 입력 테이블
+        other_data = actions.get_daycal_other_values()
+        self.other_data_model = DayCalOthersTableModel(self, other_data)
+        self.other_table.setModel(self.other_data_model)
+
+        # 결과 테이블
+        self.result_data_model = DayCalResultTableModel(self, owner_data, other_data)
+        self.result_table.setModel(self.result_data_model)
 
         # 그리드 레이아웃
         grid = QGridLayout()
 
         # 테이블위젯 추가
         grid.addWidget(self.input_table, 0, 0)
+        grid.addWidget(self.other_table, 1, 0)
+        grid.addWidget(self.result_table, 0, 1, 2, 1)
+        grid.setRowStretch(0, 5)
+        grid.setColumnStretch(0, 5)
 
         # 레이아웃 세팅
         self.setLayout(grid)

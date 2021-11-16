@@ -54,7 +54,7 @@ class MainWindow(QMainWindow, QObject):
         # 화주삭제 액션 추가
         delete_owner = QAction(QIcon('src/img/delete_owner_icon.png'), '화주 삭제', self)
         delete_owner.setShortcut('Ctrl+Shift+R')
-        delete_owner.setStatusTip('화주 추가')
+        delete_owner.setStatusTip('화주 삭제')
         delete_owner.triggered.connect(lambda: actions.delete_owner(self, self.central_widget.doc_tab.tab1))
         file_menu.addAction(delete_owner)
         tool_bar.addAction(delete_owner)

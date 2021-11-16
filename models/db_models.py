@@ -76,3 +76,35 @@ class DayCalOtherValues(Base):
 
     def __init__(self, date):
         self.date = date
+        self.office_deposit = 0
+        self.kd_deposit = 0
+        self.direct_exp = 0
+        self.our_auc = 0
+        self.kd_buy = 0
+
+    def to_list(self):
+        return [self.office_deposit, self.kd_deposit, self.direct_exp, self.our_auc, self.kd_buy]
+
+
+# 일일정산서 결과 모델
+class DayCalResult(Base):
+    __tablename__ = 'daycal_result'
+    date = Column(Date, primary_key=True)
+    kd_total = Column(Integer, nullable=False)
+    kd_fare = Column(Integer, nullable=False)
+    kd_drop = Column(Integer, nullable=False)
+    kd_fee4 = Column(Integer, nullable=False)
+    after_deduction = Column(Integer, nullable=False)
+    match_fee5 = Column(Integer, nullable=False)
+    owner_fare = Column(Integer, nullable=False)
+    owner_drop = Column(Integer, nullable=False)
+    listing_fee4 = Column(Integer, nullable=False)
+    auc_check = Column(Integer, nullable=False)
+    auc_diff = Column(Integer, nullable=False)
+    match_fee5_final = Column(Integer, nullable=False)
+    auc_profit = Column(Integer, nullable=False)
+
+    def to_list(self):
+        return [self.kd_total, self.kd_fare, self.kd_drop, self.kd_fee4, self.after_deduction,
+                self.match_fee5, self.owner_fare, self.owner_drop, self.listing_fee4, self.auc_check,
+                self.auc_diff, self.match_fee5_final, self.auc_profit]

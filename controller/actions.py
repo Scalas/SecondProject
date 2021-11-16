@@ -178,4 +178,10 @@ def get_daycal_owner_values():
 
 
 def get_daycal_other_values():
-    return session.query(DayCalOtherValues).filter(DayCalOtherValues.date == date.today()).all()
+    today = date.today()
+    value = session.query(DayCalOtherValues).filter(DayCalOtherValues.date == today).first()
+    if not value:
+        value = DayCalOtherValues(today)
+        session.add(value)
+        session.commit()
+    return value.to_list()
