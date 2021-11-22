@@ -1,5 +1,3 @@
-from datetime import date
-
 from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView
 
 from controller import actions
@@ -19,18 +17,15 @@ class DayCal(QWidget):
     # ui 초기화
     def init_ui(self):
         # 화주별 데이터 입력테이블
-        owner_list = actions.get_daycal_owner_list()
-        owner_data = actions.get_daycal_owner_values()
-        self.data_model = DayCalTableModel(self, owner_list, owner_data)
+        self.data_model = DayCalTableModel(self, actions.get_daycal_owner_list(), actions.get_daycal_owner_values())
         self.input_table.setModel(self.data_model)
 
         # 기타 데이터 입력 테이블
-        other_data = actions.get_daycal_other_values()
-        self.other_data_model = DayCalOthersTableModel(self, other_data)
+        self.other_data_model = DayCalOthersTableModel(self, actions.get_daycal_other_values())
         self.other_table.setModel(self.other_data_model)
 
         # 결과 테이블
-        self.result_data_model = DayCalResultTableModel(self, owner_data, other_data)
+        self.result_data_model = DayCalResultTableModel(self, actions.get_daycal_result())
         self.result_table.setModel(self.result_data_model)
 
         # 그리드 레이아웃

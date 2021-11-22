@@ -64,7 +64,7 @@ class DayCalOwnerValues(Base):
                 self.deduction_total, self.total_include_pre]
 
 
-# 일일정산서에 입력될 기타 데이터 모델
+# 일일정산서 기타 데이터 모델
 class DayCalOtherValues(Base):
     __tablename__ = 'daycal_other_values'
     date = Column(Date, primary_key=True)
@@ -103,6 +103,22 @@ class DayCalResult(Base):
     auc_diff = Column(Integer, nullable=False)
     match_fee5_final = Column(Integer, nullable=False)
     auc_profit = Column(Integer, nullable=False)
+
+    def __init__(self, date):
+        self.date = date
+        self.kd_total = 0
+        self.kd_fare = 0
+        self.kd_drop = 0
+        self.kd_fee4 = 0
+        self.after_deduction = 0
+        self.match_fee5 = 0
+        self.owner_fare = 0
+        self.owner_drop = 0
+        self.listing_fee4 = 0
+        self.auc_check = 0
+        self.auc_diff = 0
+        self.match_fee5_final = 0
+        self.auc_profit = 0
 
     def to_list(self):
         return [self.kd_total, self.kd_fare, self.kd_drop, self.kd_fee4, self.after_deduction,

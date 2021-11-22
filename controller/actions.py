@@ -6,7 +6,7 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import and_
 
 from controller.db_manager import session
-from models.db_models import DayCalOwner, DayCalOwnerValues, DayCalOtherValues
+from models.db_models import DayCalOwner, DayCalOwnerValues, DayCalOtherValues, DayCalResult
 from widgets.simple import Dialog
 
 
@@ -163,6 +163,7 @@ def get_daycal_owner_list():
     return [q.name for q in session.query(DayCalOwner).order_by(DayCalOwner.id)]
 
 
+# 화주별 데이터 가져오기
 def get_daycal_owner_values():
     values = []
     today = date.today()
@@ -177,11 +178,23 @@ def get_daycal_owner_values():
     return values
 
 
+# 기타 데이터 가져오기
 def get_daycal_other_values():
     today = date.today()
     value = session.query(DayCalOtherValues).filter(DayCalOtherValues.date == today).first()
     if not value:
         value = DayCalOtherValues(today)
+        session.add(value)
+        session.commit()
+    return value.to_list()
+
+
+# 결과 데이터 가져오기
+def get_daycal_result():
+    today = date.today()
+    value = session.query(DayCalResult).filter(DayCalResult.date == today).first()
+    if not value:
+        value = DayCalResult(today)
         session.add(value)
         session.commit()
     return value.to_list()

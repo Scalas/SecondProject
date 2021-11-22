@@ -8,10 +8,10 @@ class DayCalTableModel(QAbstractTableModel):
     def __init__(self, parent, horizontal_header, data, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self.setParent(parent)
-        self.table_data = list(map(list, data))
+        self.table_data = data
         self.horizontal_header = horizontal_header
         self.vertical_header = ['강동총금액', '강동운임', '강동하차비', '강동수수료 4%', '공제후 금액', '중매수수료 5%', '화주운임', '화주하차비', '상장수수료 4%', '강동선지급금', '공제합계', '선지급금포함 공제합계']
-        self.row_count = 12
+        self.row_count = len(self.vertical_header)
         self.column_count = len(self.horizontal_header)
 
     def rowCount(self, parent):
@@ -110,26 +110,17 @@ class DayCalOthersTableModel(QAbstractTableModel):
 
 
 class DayCalResultTableModel(QAbstractTableModel):
-    def __init__(self, parent, owner_data, other_data, *args):
+    def __init__(self, parent, result_data, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self.setParent(parent)
         self.horizontal_header = ['계']
         self.vertical_header = ['강동총금액 합계', '강동운임 합계', '강동하차비 합계', '강동수수료 4% 합계', '공제후금액 합계',
-                                '중매수수료 5% 합계', '화주운임 합계', '화주하차비 합계', '상장수수료 4% 합계', '', '경매확인', '',
+                                '중매수수료 5% 합계', '화주운임 합계', '화주하차비 합계', '상장수수료 4% 합계', '경매확인',
                                 '경매 차액', '중개수수료 5%', '경매 차익']
         self.row_count = len(self.vertical_header)
         self.column_count = 1
 
-        data = [0] * (self.row_count + 1)
-        for values in owner_data:
-            for j in range(9):
-                data[j] += values[j]
-        data[9] = data[11] = ''
-        data[10] = sum(other_data)
-        data[12] = data[12] - other_data[0]
-        data[13] = data[5]
-        data[14] = sum(data[6:9]) - sum(data[1:4])
-        self.table_data = [data]
+        self.table_data = [result_data]
 
     def rowCount(self, parent):
         return self.row_count
