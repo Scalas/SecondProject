@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView
 
-from controller import actions
+from controller import actions, db_manager
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
 
 
@@ -9,6 +9,7 @@ class DayCal(QWidget):
     # 생성자
     def __init__(self):
         super().__init__()
+        db_manager.init_db()
         self.input_table = QTableView()
         self.other_table = QTableView()
         self.result_table = QTableView()
@@ -42,16 +43,16 @@ class DayCal(QWidget):
         self.setLayout(grid)
 
     # 화주 추가 반영
-    def owner_added(self, added_user):
-        self.data_model.owner_added(added_user)
+    def owner_added(self, owner_id, added_user, owner_type):
+        self.data_model.owner_added(owner_id, added_user, owner_type)
 
     # 화주 삭제 반영
-    def owner_removed(self, removed_name):
-        self.data_model.owner_removed(removed_name)
+    def owner_removed(self, removed_id):
+        self.data_model.owner_removed(removed_id)
 
     # 화주 이름 변경 반영
-    def owner_modified(self, org_name, chg_name):
-        self.data_model.owner_modified(org_name, chg_name)
+    def owner_modified(self, modified_id, chg_name):
+        self.data_model.owner_modified(modified_id, chg_name)
 
 
 # 대차대조표 위젯

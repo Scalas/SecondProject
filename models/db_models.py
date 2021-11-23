@@ -7,9 +7,12 @@ class DayCalOwner(Base):
     __tablename__ = 'daycal_owner'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False, unique=True)
+    owner_type = Column(Integer, nullable=False)
 
-    def __init__(self, name):
+    # type 0: 냉동 / 1: 생물
+    def __init__(self, name, owner_type):
         self.name = name
+        self.owner_type = owner_type
 
     def get_id(self):
         return self.id
@@ -22,6 +25,9 @@ class DayCalOwner(Base):
 
     def set_name(self, name):
         self.name = name
+
+    def to_list(self):
+        return [self.id, self.name, self.owner_type]
 
 
 # 화주별 일일정산 데이터 모델

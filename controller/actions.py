@@ -1,6 +1,6 @@
 from datetime import date
 
-from PySide6.QtWidgets import QLabel, QGridLayout, QPushButton, QLineEdit
+from PySide6.QtWidgets import QLabel, QGridLayout, QPushButton, QLineEdit, QComboBox, QRadioButton
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import and_
@@ -11,10 +11,11 @@ from widgets.simple import Dialog
 
 
 # 화주 추가
-def create_owner(main_window, table_view, name_data=None):
+def create_owner(main_window, table_view, name_data=None, owner_type_data=None):
     # 입력받은 이름이 이미 있는 경우
     if name_data:
         name = name_data
+        owner_type = owner_type_data
 
     # 이름을 입력받아야 하는 경우
     else:
@@ -30,9 +31,15 @@ def create_owner(main_window, table_view, name_data=None):
         input_name.returnPressed.connect(create_owner_dialog.success)
         submit = QPushButton('추가')
         submit.clicked.connect(create_owner_dialog.success)
+        type_0 = QRadioButton('냉동')
+        type_1 = QRadioButton('생물')
+        type_1.setChecked(True)
         grid.addWidget(QLabel('화주 이름: '), 0, 0, 1, 1)
         grid.addWidget(input_name, 0, 1, 1, 2)
-        grid.addWidget(submit, 1, 0, 1, 3)
+        grid.addWidget(QLabel('화주 종류: '), 1, 0, 1, 1)
+        grid.addWidget(type_0, 1, 1, 1, 1)
+        grid.addWidget(type_1, 1, 2, 1, 1)
+        grid.addWidget(submit, 2, 0, 1, 3)
         create_owner_dialog.setLayout(grid)
 
         # 다이얼로그를 modal 하게 표시
@@ -44,9 +51,10 @@ def create_owner(main_window, table_view, name_data=None):
 
         # 다이얼로그에서 입력이 완료되면 입력받은 이름을 name 으로 설정
         name = input_name.text()
+        owner_type = 0 if type_0.isChecked() else 1
 
     # 새 화주 추가
-    new_owner = DayCalOwner(name)
+    new_owner = DayCalOwner(name, owner_type)
     try:
         session.add(new_owner)
         session.flush()
@@ -54,7 +62,7 @@ def create_owner(main_window, table_view, name_data=None):
         today_values = DayCalOwnerValues(date.today(), new_owner.id)
         session.add(today_values)
         session.commit()
-        table_view.owner_added(name)
+        table_view.owner_added(new_owner.id, name, owner_type)
     except ValueError:
         main_window.statusBar().showMessage('>> 이미 등록된 화주입니다.')
         session.rollback()
@@ -102,7 +110,7 @@ def delete_owner(main_window, table_widget, name_data=None):
         target_data = session.query(DayCalOwnerValues).filter(and_(DayCalOwnerValues.owner_id == target.id, DayCalOwnerValues.date == date.today())).first()
         session.delete(target_data)
         session.commit()
-        table_widget.owner_removed(target.name)
+        table_widget.owner_removed(target.id)
     except UnmappedInstanceError:
         main_window.statusBar().showMessage('>> 등록되지 않은 화주입니다.')
 
@@ -150,7 +158,7 @@ def modify_owner(main_window, table_widget, name_data=None):
         target = session.query(DayCalOwner).filter(DayCalOwner.name == name).first()
         target.name = changed
         session.commit()
-        table_widget.owner_modified(name, changed)
+        table_widget.owner_modified(target.id, changed)
     except AttributeError:
         main_window.statusBar().showMessage('>> 등록되지 않은 화주입니다.')
     except DatabaseError:
@@ -160,7 +168,10 @@ def modify_owner(main_window, table_widget, name_data=None):
 
 # 화주 명단 가져오기
 def get_daycal_owner_list():
-    return [q.name for q in session.query(DayCalOwner).order_by(DayCalOwner.id)]
+    values = []
+    for q in session.query(DayCalOwner).order_by(DayCalOwner.id).all():
+        values.append(q.to_list())
+    return values
 
 
 # 화주별 데이터 가져오기
