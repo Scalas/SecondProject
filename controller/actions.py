@@ -59,10 +59,10 @@ def create_owner(main_window, table_view, name_data=None, owner_type_data=None):
         session.add(new_owner)
         session.flush()
         session.refresh(new_owner)
-        today_values = DayCalOwnerValues(date.today(), new_owner.id)
+        today_values = DayCalOwnerValues(date.today(), new_owner.id, new_owner.name)
         session.add(today_values)
         session.commit()
-        table_view.owner_added(new_owner.id, name, owner_type)
+        table_view.owner_added(new_owner, today_values)
     except ValueError:
         main_window.statusBar().showMessage('>> 이미 등록된 화주입니다.')
         session.rollback()
@@ -166,18 +166,23 @@ def modify_owner(main_window, table_widget, name_data=None):
         session.rollback()
 
 
+def save():
+    session.commit()
+
+
+# DB 액션
 # 화주 명단 가져오기
 def get_daycal_owner_list():
-    values = []
-    for q in session.query(DayCalOwner).order_by(DayCalOwner.id).all():
-        values.append(q.to_list())
-    return values
+    return session.query(DayCalOwner).order_by(DayCalOwner.id).all()
 
 
 # 화주별 데이터 가져오기
-def get_daycal_owner_values():
-    values = []
+def get_daycal_owner_values(today = None):
+    if today:
+        return session.query(DayCalOwnerValues).filter(DayCalOwnerValues.date == today).order_by(DayCalOwnerValues.owner_id).all()
+
     today = date.today()
+    values = []
     for owner_id in session.query(DayCalOwner.id).order_by(DayCalOwner.id):
         id = owner_id[0]
         value = session.query(DayCalOwnerValues).filter(and_(DayCalOwnerValues.owner_id == id, DayCalOwnerValues.date == today)).first()
@@ -185,27 +190,25 @@ def get_daycal_owner_values():
             value = DayCalOwnerValues(today, id)
             session.add(value)
             session.commit()
-        values.append(value.to_list())
+        values.append(value)
     return values
 
 
 # 기타 데이터 가져오기
-def get_daycal_other_values():
-    today = date.today()
+def get_daycal_other_values(today = date.today()):
     value = session.query(DayCalOtherValues).filter(DayCalOtherValues.date == today).first()
     if not value:
         value = DayCalOtherValues(today)
         session.add(value)
         session.commit()
-    return value.to_list()
+    return value
 
 
 # 결과 데이터 가져오기
-def get_daycal_result():
-    today = date.today()
+def get_daycal_result(today = date.today()):
     value = session.query(DayCalResult).filter(DayCalResult.date == today).first()
     if not value:
         value = DayCalResult(today)
         session.add(value)
         session.commit()
-    return value.to_list()
+    return value

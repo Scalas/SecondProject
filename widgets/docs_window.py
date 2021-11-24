@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView
 
 from controller import actions, db_manager
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
+from widgets.simple import TableView
 
 
 # 일일 정산서 계산서 위젯
@@ -10,9 +11,9 @@ class DayCal(QWidget):
     def __init__(self):
         super().__init__()
         db_manager.init_db()
-        self.input_table = QTableView()
-        self.other_table = QTableView()
-        self.result_table = QTableView()
+        self.input_table = TableView()
+        self.other_table = TableView()
+        self.result_table = TableView()
         self.init_ui()
 
     # ui 초기화
@@ -43,8 +44,8 @@ class DayCal(QWidget):
         self.setLayout(grid)
 
     # 화주 추가 반영
-    def owner_added(self, owner_id, added_user, owner_type):
-        self.data_model.owner_added(owner_id, added_user, owner_type)
+    def owner_added(self, new_owner, today_values):
+        self.data_model.owner_added(new_owner, today_values)
 
     # 화주 삭제 반영
     def owner_removed(self, removed_id):

@@ -67,6 +67,14 @@ class MainWindow(QMainWindow, QObject):
         file_menu.addAction(modify_owner)
         tool_bar.addAction(modify_owner)
 
+        # 저장 액션 추가
+        save_data = QAction(QIcon('src/img/save_icon.png'), '화주 이름 변경', self)
+        save_data.setShortcut('Ctrl+S')
+        save_data.setStatusTip('화주 이름 변경')
+        save_data.triggered.connect(actions.save)
+        file_menu.addAction(save_data)
+        tool_bar.addAction(save_data)
+
         # 앱의 Central Widget 에 self.central_widget 설정
         self.setCentralWidget(self.central_widget)
 

@@ -22,14 +22,19 @@ class DayCalTableModel(QAbstractTableModel):
 
     def data(self, index, role):
         if index.isValid():
-            if role == Qt.DisplayRole or role == Qt.EditRole:
-                value = self.table_data[index.column()][index.row()]
+            if role == Qt.DisplayRole:
+                value = self.table_data[index.column()].get(index.row())
+                return format(value, ',')
+            elif role == Qt.EditRole:
+                value = self.table_data[index.column()].get(index.row())
                 return value
+            elif role == Qt.TextAlignmentRole:
+                return int(Qt.AlignRight | Qt.AlignVCenter)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
-                return self.owner_list[section][1]
+                return self.owner_list[section].get(1)
             else:
                 return self.vertical_header[section]
         return None
@@ -46,25 +51,25 @@ class DayCalTableModel(QAbstractTableModel):
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
-    def setData(self, index: QModelIndex, value, role):
+    def setData(self, index: QModelIndex, value: int, role):
         if role == Qt.EditRole:
             r, c = index.row(), index.column()
-            self.changed(r, c, self.table_data[c][r], value)
-            self.table_data[c][r] = value
+            self.changed(r, c, self.table_data[c].get(r), value)
+            self.table_data[c].set(r, value)
             return True
         return False
 
-    def owner_added(self, owner_id, name, owner_type):
+    def owner_added(self, new_owner, today_values):
         self.beginInsertColumns(QModelIndex(), self.column_count, self.column_count)
-        self.owner_list.append((owner_id, name, owner_type))
-        self.table_data.append([0]*12)
+        self.owner_list.append(new_owner)
+        self.table_data.append(today_values)
         self.column_count += 1
         self.endInsertColumns()
 
     def owner_removed(self, owner_id):
         idx = 0
         for i in range(len(self.owner_list)):
-            if self.owner_list[i][0] == owner_id:
+            if self.owner_list[i].get(0) == owner_id:
                 idx = i
                 break
 
@@ -77,54 +82,71 @@ class DayCalTableModel(QAbstractTableModel):
     def owner_modified(self, owner_id, chg):
         idx = 0
         for i in range(len(self.owner_list)):
-            if self.owner_list[i][0] == owner_id:
+            if self.owner_list[i].get(0) == owner_id:
                 idx = i
                 break
-        self.owner_list[idx][1] = chg
+        self.owner_list[idx].set(1, chg)
 
-    def changed(self, r, c, org, chg):
+    def changed(self, row, column, org, chg):
         # 강동 총금액
-        if r == 0:
+        if row == 0:
             # => 강동수수료 4%
             # 생물 4%
-            if self.owner_list[c][2]:
-                self.setData(self.index(3, c), int(chg * 0.04), Qt.EditRole)
+            if self.owner_list[column].get(2):
+                self.setData(self.index(3, column), int(chg * 0.04), Qt.EditRole)
             # 냉동 2%
             else:
-                self.setData(self.index(3, c), int(chg * 0.02), Qt.EditRole)
+                self.setData(self.index(3, column), int(chg * 0.02), Qt.EditRole)
 
             # => 공제 후 금액
-            val = self.table_data[c][4]
+            val = self.table_data[column].get(4)
             val += (chg - org)
-            self.setData(self.index(4, c), val, Qt.EditRole)
+            self.setData(self.index(4, column), val, Qt.EditRole)
+
+            # => 결과테이블 합계값
+            self.parent().result_data_model.out_changed(0, row, org, chg)
+            self.parent().result_table.repaint()
 
         # 강동운임 ~ 강동수수료
-        elif 1 <= r <= 3:
+        elif 1 <= row <= 3:
             # => 공제후 금액
-            val = self.table_data[c][4]
+            val = self.table_data[column].get(4)
             val -= (chg - org)
-            self.setData(self.index(4, c), val, Qt.EditRole)
+            self.setData(self.index(4, column), val, Qt.EditRole)
+
+            # => 결과테이블 합계값
+            self.parent().result_data_model.out_changed(0, row, org, chg)
+            self.parent().result_table.repaint()
+
+        elif row == 4:
+            # => 결과테이블 합계값
+            self.parent().result_data_model.out_changed(0, row, org, chg)
+            self.parent().result_table.repaint()
 
         # 중매수수료 5% ~ 상장수수료 4%
-        elif 5 <= r <= 8:
+        elif 5 <= row <= 8:
             # => 공제 합계
-            val = self.table_data[c][10]
+            val = self.table_data[column].get(10)
             val += (chg - org)
-            self.setData(self.index(10, c), val, Qt.EditRole)
+            self.setData(self.index(10, column), val, Qt.EditRole)
+
+            # => 결과테이블 합계값
+            self.parent().result_data_model.out_changed(0, row, org, chg)
+            self.parent().result_table.repaint()
 
         # 강동선지급금
-        elif r == 9:
+        elif row == 9:
             # => 선지급금 포함 공제합계
-            val = self.table_data[c][11]
+            val = self.table_data[column].get(11)
             val += (chg - org)
-            self.setData(self.index(10, c), val, Qt.EditRole)
+            self.setData(self.index(10, column), val, Qt.EditRole)
 
         # 공제합계
-        elif r == 10:
+        elif row == 10:
             # => 선지급금 포함 공제합계
-            val = self.table_data[c][11]
+            val = self.table_data[column].get(11)
             val += (chg - org)
-            self.setData(self.index(11, c), val, Qt.EditRole)
+            self.setData(self.index(11, column), val, Qt.EditRole)
 
 
 class DayCalOthersTableModel(QAbstractTableModel):
@@ -143,10 +165,14 @@ class DayCalOthersTableModel(QAbstractTableModel):
         return self.column_count
 
     def data(self, index, role):
-        if index.isValid():
-            if role == Qt.DisplayRole or role == Qt.EditRole:
-                value = self.table_data[index.column()][index.row()]
-                return str(value)
+        if role == Qt.DisplayRole:
+            value = self.table_data[index.column()].get(index.row())
+            return format(value, ',')
+        elif role == Qt.EditRole:
+            value = self.table_data[index.column()].get(index.row())
+            return value
+        elif role == Qt.TextAlignmentRole:
+            return int(Qt.AlignRight | Qt.AlignVCenter)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...):
         if role == Qt.DisplayRole:
@@ -157,11 +183,17 @@ class DayCalOthersTableModel(QAbstractTableModel):
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
-    def setData(self, index, value, role):
+    def setData(self, index: QModelIndex, value: int, role):
         if role == Qt.EditRole:
-            self.table_data[index.column()][index.row()] = value
+            r, c = index.row(), index.column()
+            self.changed(r, c, self.table_data[c].get(r), value)
+            self.table_data[c].set(r, value)
             return True
         return False
+
+    def changed(self, row, column, org, chg):
+        self.parent().result_data_model.out_changed(1, row, org, chg)
+        self.parent().result_table.repaint()
 
 
 class DayCalResultTableModel(QAbstractTableModel):
@@ -184,10 +216,14 @@ class DayCalResultTableModel(QAbstractTableModel):
         return self.column_count
 
     def data(self, index, role):
-        if index.isValid():
-            if role == Qt.DisplayRole or role == Qt.EditRole:
-                value = self.table_data[index.column()][index.row()]
-                return str(value)
+        if role == Qt.DisplayRole:
+            value = self.table_data[index.column()].get(index.row())
+            return format(value, ',')
+        elif role == Qt.EditRole:
+            value = self.table_data[index.column()].get(index.row())
+            return value
+        elif role == Qt.TextAlignmentRole:
+            return int(Qt.AlignRight | Qt.AlignVCenter)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...):
         if role == Qt.DisplayRole:
@@ -199,3 +235,66 @@ class DayCalResultTableModel(QAbstractTableModel):
 
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
+
+    def setData(self, index: QModelIndex, value: int, role):
+        if role == Qt.EditRole:
+            r, c = index.row(), index.column()
+            self.changed(r, c, self.table_data[c].get(r), value)
+            self.table_data[c].set(r, value)
+            return True
+        return False
+
+    def changed(self, row, column, org, chg):
+        # 강동 운임합계 ~ 강동 수수료 4% 합계
+        if 1 <= row <= 3:
+            # => 경매차익
+            val = self.table_data[column].get(12) - (chg - org)
+            self.setData(self.index(12, column), val, Qt.EditRole)
+
+        # 공제후 금액 합계
+        elif row == 4:
+            val = self.table_data[column].get(10) + (chg - org)
+            self.setData(self.index(10, column), val, Qt.EditRole)
+
+        # 중매 수수료 5% 합계
+        elif row == 5:
+            self.setData(self.index(11, column), chg, Qt.EditRole)
+
+        # 화주 운임합계 ~ 상장 수수료 4% 합계
+        elif 6 <= row <= 8:
+            # => 경매차익
+            val = self.table_data[column].get(12) + (chg - org)
+            self.setData(self.index(12, column), val, Qt.EditRole)
+
+    def out_changed(self, table_type, row, org, chg):
+        # DayCalTable 테이블의 변경사항
+        if table_type == 0:
+            # 강동 총금액 ~ 공제후 금액
+            if 0 <= row <= 4:
+                # => 각 합계
+                val = self.table_data[0].get(row) + (chg - org)
+                self.setData(self.index(row, 0), val, Qt.EditRole)
+
+            # 중매수수료 5% ~ 상장수수료 5%
+            elif 5 <= row <= 8:
+                # => 각 합계
+                val = self.table_data[0].get(row) + (chg - org)
+                self.setData(self.index(row, 0), val, Qt.EditRole)
+
+        # DayCalOthersTable 테이블의 변경사항
+        elif table_type == 1:
+            # 경매사무실 입금
+            if row == 0:
+                # => 경매 확인
+                val = self.table_data[0].get(9) + (chg - org)
+                self.setData(self.index(9, 0), val, Qt.EditRole)
+
+            # 경매 사무실 입금 ~ 강동사입
+            elif 1 <= row <= 4:
+                # => 경매 확인
+                val = self.table_data[0].get(9) + (chg - org)
+                self.setData(self.index(9, 0), val, Qt.EditRole)
+
+                # => 경매 차액
+                val = self.table_data[0].get(10) - (chg - org)
+                self.setData(self.index(10, 0), val, Qt.EditRole)
