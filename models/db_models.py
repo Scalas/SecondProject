@@ -39,7 +39,7 @@ class DayCalOwnerValues(Base):
     __tablename__ = 'daycal_owner_values'
     date = Column(Date, primary_key=True)
     owner_id = Column(Integer, primary_key=True)
-    owner_name = Column(String, unique=True, nullable=False)
+    owner_name = Column(String, nullable=False)
     kd_total = Column(Integer, nullable=False)
     kd_fare = Column(Integer, nullable=False)
     kd_drop = Column(Integer, nullable=False)

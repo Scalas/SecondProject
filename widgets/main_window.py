@@ -68,7 +68,7 @@ class MainWindow(QMainWindow, QObject):
         tool_bar.addAction(modify_owner)
 
         # 저장 액션 추가
-        save_data = QAction(QIcon('src/img/save_icon.png'), '화주 이름 변경', self)
+        save_data = QAction(QIcon('src/img/save_icon.png'), '저장하기', self)
         save_data.setShortcut('Ctrl+S')
         save_data.setStatusTip('화주 이름 변경')
         save_data.triggered.connect(actions.save)
