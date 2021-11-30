@@ -1,6 +1,6 @@
 from datetime import date
 
-from PySide6.QtWidgets import QLabel, QGridLayout, QPushButton, QLineEdit, QComboBox, QRadioButton
+from PySide6.QtWidgets import QApplication, QLabel, QGridLayout, QPushButton, QLineEdit, QComboBox, QRadioButton
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import and_
@@ -8,6 +8,7 @@ from sqlalchemy import and_
 from controller.db_manager import session
 from models.db_models import DayCalOwner, DayCalOwnerValues, DayCalOtherValues, DayCalResult
 from widgets.simple import Dialog
+from widgets.date_query import DayCalQueryResult, DateSelect
 
 
 # 화주 추가
@@ -20,7 +21,7 @@ def create_owner(main_window, table_view, name_data=None, owner_type_data=None):
     # 이름을 입력받아야 하는 경우
     else:
         # 다이얼로그 위젯 생성
-        create_owner_dialog = Dialog()
+        create_owner_dialog = Dialog(main_window)
         create_owner_dialog.setWindowTitle('화주 추가')
         create_owner_dialog.setGeometry(500, 500, 300, 50)
 
@@ -59,7 +60,7 @@ def create_owner(main_window, table_view, name_data=None, owner_type_data=None):
         session.add(new_owner)
         session.flush()
         session.refresh(new_owner)
-        today_values = DayCalOwnerValues(date.today(), new_owner.id, new_owner.name)
+        today_values = DayCalOwnerValues(date.today(), new_owner.id, new_owner.name, new_owner.owner_type)
         session.add(today_values)
         session.commit()
         table_view.owner_added(new_owner, today_values)
@@ -77,7 +78,7 @@ def delete_owner(main_window, table_widget, name_data=None):
     # 이름을 입력받아야 하는 경우
     else:
         # 다이얼로그 위젯 생성
-        delete_owner_dialog = Dialog()
+        delete_owner_dialog = Dialog(main_window)
         delete_owner_dialog.setWindowTitle('화주 삭제')
         delete_owner_dialog.setGeometry(500, 500, 300, 50)
 
@@ -118,7 +119,7 @@ def delete_owner(main_window, table_widget, name_data=None):
 # 화주 이름 변경
 def modify_owner(main_window, table_widget, name_data=None):
     # 다이얼로그 위젯 생성
-    modify_owner_dialog = Dialog()
+    modify_owner_dialog = Dialog(main_window)
     modify_owner_dialog.setWindowTitle('화주 이름 변경')
     modify_owner_dialog.setGeometry(500, 500, 300, 50)
     grid = QGridLayout()
@@ -177,7 +178,7 @@ def get_daycal_owner_list():
 
 
 # 화주별 데이터 가져오기
-def get_daycal_owner_values(today = None):
+def get_daycal_owner_values(today=None):
     if today:
         return session.query(DayCalOwnerValues).filter(DayCalOwnerValues.date == today).order_by(DayCalOwnerValues.owner_id).all()
 
@@ -197,7 +198,7 @@ def get_daycal_owner_values(today = None):
 
 
 # 기타 데이터 가져오기
-def get_daycal_other_values(today = date.today()):
+def get_daycal_other_values(today=date.today()):
     value = session.query(DayCalOtherValues).filter(DayCalOtherValues.date == today).first()
     if not value:
         value = DayCalOtherValues(today)
@@ -207,10 +208,23 @@ def get_daycal_other_values(today = date.today()):
 
 
 # 결과 데이터 가져오기
-def get_daycal_result(today = date.today()):
+def get_daycal_result(today=date.today()):
     value = session.query(DayCalResult).filter(DayCalResult.date == today).first()
     if not value:
         value = DayCalResult(today)
         session.add(value)
         session.commit()
+
     return value
+
+
+# 날짜로 데이터 조회
+def date_query(parent, tab):
+    date_select = DateSelect(parent)
+    date_select.show_modal()
+
+    if not date_select.canceled:
+        if tab == 0:
+            today = date_select.calendar.selectedDate().toString('yyyy-MM-dd')
+            result = DayCalQueryResult(parent, get_daycal_owner_values(today), get_daycal_other_values(today), get_daycal_result(today), today)
+            result.show()

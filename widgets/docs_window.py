@@ -10,26 +10,31 @@ class DayCal(QWidget):
     # 생성자
     def __init__(self):
         super().__init__()
-        db_manager.init_db()
+        # 화주명단, 화주별 데이터, 기타 데이터, 결과 데이터를 DB 에서 읽어온다
+        self.owner_list = actions.get_daycal_owner_list()
+        self.owner_values = actions.get_daycal_owner_values()
+        self.other_values = actions.get_daycal_other_values()
+        self.result = actions.get_daycal_result()
+
+        # 입력 테이블 생성(화주별 데이터)
         self.input_table = TableView()
+        self.data_model = DayCalTableModel(self, actions.get_daycal_owner_list(), actions.get_daycal_owner_values())
+        self.input_table.setModel(self.data_model)
+
+        # 기타 테이블 생성(기타 데이터)
         self.other_table = TableView()
+        self.other_data_model = DayCalOthersTableModel(self, actions.get_daycal_other_values())
+        self.other_table.setModel(self.other_data_model)
+
+        # 결과 테이블 생성
         self.result_table = TableView()
+        self.result_data_model = DayCalResultTableModel(self, actions.get_daycal_result())
+        self.result_table.setModel(self.result_data_model)
+
         self.init_ui()
 
     # ui 초기화
     def init_ui(self):
-        # 화주별 데이터 입력테이블
-        self.data_model = DayCalTableModel(self, actions.get_daycal_owner_list(), actions.get_daycal_owner_values())
-        self.input_table.setModel(self.data_model)
-
-        # 기타 데이터 입력 테이블
-        self.other_data_model = DayCalOthersTableModel(self, actions.get_daycal_other_values())
-        self.other_table.setModel(self.other_data_model)
-
-        # 결과 테이블
-        self.result_data_model = DayCalResultTableModel(self, actions.get_daycal_result())
-        self.result_table.setModel(self.result_data_model)
-
         # 그리드 레이아웃
         grid = QGridLayout()
 

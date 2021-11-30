@@ -1,20 +1,19 @@
-from PySide6.QtCore import QObject
-from PySide6.QtGui import QIcon, QAction
+from PySide6.QtCore import QObject, QEvent
+from PySide6.QtGui import QIcon, QAction, QMouseEvent
 from PySide6.QtWidgets import QMainWindow, QWidget, QGridLayout
 
 from controller.config_manager import set_geometry, get_geometry
 from controller.db_manager import close_db
 from controller import actions
-from widgets.docs_window import DocTab
-from widgets.simple import TimeLabel
+from widgets.docs_window import DocTab, DayCal, SH, BalancedSheet
+from widgets.simple import TimeLabel, StatusBar
 
 
 class MainWindow(QMainWindow, QObject):
     # 생성자
     def __init__(self):
         super().__init__()
-        self.central_widget = CentralWidget()
-        self.central_widget.setParent(self)
+        self.central_widget = CentralWidget(self)
         self.init_ui()
 
     # ui 초기화
@@ -24,6 +23,7 @@ class MainWindow(QMainWindow, QObject):
 
         # 시간 레이블 추가
         time_label = TimeLabel()
+        time_label.clicked.connect(lambda: actions.date_query(self, self.central_widget.get_selected_tab()))
         status_bar.addPermanentWidget(time_label)
 
         # 메뉴바 생성
@@ -113,11 +113,17 @@ class MainWindow(QMainWindow, QObject):
         set_geometry(self.normalGeometry(), self.isMaximized())
         close_db()
 
+    # 상태표시줄 생성(오버라이드)
+    def statusBar(self):
+        status_bar = StatusBar()
+        self.setStatusBar(status_bar)
+        return status_bar
+
 
 # 중앙 위젯
 class CentralWidget(QWidget):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.doc_tab = DocTab()
         self.doc_tab.setParent(self)
         self.init_ui()
@@ -133,3 +139,7 @@ class CentralWidget(QWidget):
 
         # 중앙 위젯에 그리드 레이아웃 적용
         self.setLayout(grid)
+
+    def get_selected_tab(self):
+        cur = self.doc_tab.currentWidget()
+        return 0 if cur == self.doc_tab.tab1 else 1 if self.doc_tab.tab2 else 2

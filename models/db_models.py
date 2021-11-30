@@ -10,9 +10,11 @@ class DayCalOwner(Base):
     owner_type = Column(Integer, nullable=False)
 
     # type 0: 냉동 / 1: 생물
-    def __init__(self, name, owner_type):
+    def __init__(self, name, owner_type, owner_id=-1):
         self.name = name
         self.owner_type = owner_type
+        if owner_id >= 0:
+            self.id = owner_id
 
     def get(self, idx):
         if idx == 0:
@@ -40,6 +42,7 @@ class DayCalOwnerValues(Base):
     date = Column(Date, primary_key=True)
     owner_id = Column(Integer, primary_key=True)
     owner_name = Column(String, nullable=False)
+    owner_type = Column(Integer, nullable=False)
     kd_total = Column(Integer, nullable=False)
     kd_fare = Column(Integer, nullable=False)
     kd_drop = Column(Integer, nullable=False)
@@ -53,10 +56,11 @@ class DayCalOwnerValues(Base):
     deduction_total = Column(Integer, nullable=False)
     total_include_pre = Column(Integer, nullable=False)
 
-    def __init__(self, date, owner_id, owner_name):
+    def __init__(self, date, owner_id, owner_name, owner_type):
         self.date = date
         self.owner_id = owner_id
         self.owner_name = owner_name
+        self.owner_type = owner_type
         self.kd_total = 0
         self.kd_fare = 0
         self.kd_drop = 0
@@ -121,6 +125,15 @@ class DayCalOwnerValues(Base):
             self.deduction_total = val
         elif idx == 11:
             self.total_include_pre = val
+
+    def get_owner_id(self):
+        return self.owner_id
+
+    def get_owner_name(self):
+        return self.owner_name
+
+    def get_owner_type(self):
+        return self.owner_type
 
     def to_list(self):
         return [self.kd_total, self.kd_fare, self.kd_drop, self.kd_fee4, self.after_deduction,
