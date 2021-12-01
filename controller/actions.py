@@ -186,11 +186,12 @@ def get_daycal_owner_values(today=None):
     values = []
     owner_list = get_daycal_owner_list()
     for owner in owner_list:
-        id = owner.get(0)
-        name = owner.get(1)
+        id = owner.get_id()
+        name = owner.get_name()
+        owner_type = owner.get_type()
         value = session.query(DayCalOwnerValues).filter(and_(DayCalOwnerValues.owner_id == id, DayCalOwnerValues.date == today)).first()
         if not value:
-            value = DayCalOwnerValues(today, id, name)
+            value = DayCalOwnerValues(today, id, name, owner_type)
             session.add(value)
             session.commit()
         values.append(value)

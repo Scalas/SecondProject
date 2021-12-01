@@ -32,8 +32,14 @@ class DayCalOwner(Base):
         elif idx == 2:
             self.owner_type = val
 
-    def to_list(self):
-        return [self.id, self.name, self.owner_type]
+    def get_id(self):
+        return self.id
+
+    def get_name(self):
+        return self.name
+
+    def get_type(self):
+        return self.owner_type
 
 
 # 화주별 일일정산 데이터 모델
@@ -134,11 +140,6 @@ class DayCalOwnerValues(Base):
 
     def get_owner_type(self):
         return self.owner_type
-
-    def to_list(self):
-        return [self.kd_total, self.kd_fare, self.kd_drop, self.kd_fee4, self.after_deduction,
-                self.match_fee5, self.owner_fare, self.owner_drop, self.listing_fee4, self.kd_pre,
-                self.deduction_total, self.total_include_pre]
 
 
 # 일일정산서 기타 데이터 모델

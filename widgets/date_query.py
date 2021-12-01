@@ -5,6 +5,8 @@ from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCal
 from models.db_models import DayCalOwner
 
 
+# 날짜로 조회한 데이터를 표시하기 위한 위젯
+# 기본적으로 DayCal 위젯과 거의 동일한 구조를 가짐
 class DayCalQueryResult(QDialog):
     # 생성자
     def __init__(self, parent, owner_values, other_values, result, today):
@@ -60,9 +62,6 @@ class DayCalQueryResult(QDialog):
 
         # 타이틀 설정
         self.setWindowTitle("일일정산서 계산서: " + self.today)
-
-    def show_modal(self):
-        return super().exec_()
 
 
 # 날짜로 데이터 조회를 위한 달력 위젯
