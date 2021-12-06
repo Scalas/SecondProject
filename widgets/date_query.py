@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton
+from PySide6.QtCore import Signal
 
 from widgets.simple import TableView
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
@@ -8,6 +9,8 @@ from models.db_models import DayCalOwner
 # 날짜로 조회한 데이터를 표시하기 위한 위젯
 # 기본적으로 DayCal 위젯과 거의 동일한 구조를 가짐
 class DayCalQueryResult(QDialog):
+    submitted = Signal()
+
     # 생성자
     def __init__(self, parent, owner_values, other_values, result, today):
         super().__init__(parent)
@@ -15,6 +18,8 @@ class DayCalQueryResult(QDialog):
         self.owner_values = owner_values
         self.other_values = other_values
         self.result = result
+        self.save = QPushButton('저장')
+        self.save.clicked.connect(lambda: self.submitted.emit())
         self.today = today
 
         # 화주별 데이터를 기반으로 임시 화주 명단을 생성
@@ -48,6 +53,7 @@ class DayCalQueryResult(QDialog):
         grid.addWidget(self.input_table, 0, 0)
         grid.addWidget(self.other_table, 1, 0)
         grid.addWidget(self.result_table, 0, 1, 2, 1)
+        grid.addWidget(self.save, 2, 1)
         grid.setRowStretch(0, 5)
         grid.setColumnStretch(0, 5)
 

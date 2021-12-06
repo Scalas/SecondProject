@@ -228,4 +228,5 @@ def date_query(parent, tab):
         if tab == 0:
             today = date_select.calendar.selectedDate().toString('yyyy-MM-dd')
             result = DayCalQueryResult(parent, get_daycal_owner_values(today), get_daycal_other_values(today), get_daycal_result(today), today)
+            result.submitted.connect(save)
             result.show()
