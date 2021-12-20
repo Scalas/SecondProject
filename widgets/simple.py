@@ -1,6 +1,6 @@
 from PySide6.QtCore import QDateTime, QTimer, QEvent, QObject, Signal
-from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar
-from PySide6.QtGui import QKeyEvent, QMouseEvent
+from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar, QStyleOptionViewItem, QFrame
+from PySide6.QtGui import QKeyEvent, QMouseEvent, QPainter, QPalette, QColor
 from PySide6.QtCore import Qt
 
 
@@ -47,9 +47,9 @@ class Dialog(QDialog):
 
 # QTableView 커스터마이징(QTableView 상속)
 class TableView(QTableView):
-    def __init__(self):
+    def __init__(self, table_type):
         super().__init__()
-        self.setItemDelegate(ItemDelegate(self))
+        self.setItemDelegate(ItemDelegate(self, table_type))
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         key = event.key()
@@ -67,9 +67,10 @@ class TableView(QTableView):
 
 
 class ItemDelegate(QStyledItemDelegate):
-    def __init__(self, parent: TableView):
+    def __init__(self, parent: TableView, table_type):
         super().__init__()
         self.setParent(parent)
+        self.table_type = table_type
 
     def eventFilter(self, object: QObject, event: QEvent) -> bool:
         if event.type() == QEvent.KeyPress:
@@ -80,3 +81,16 @@ class ItemDelegate(QStyledItemDelegate):
                 return True
         super().eventFilter(object, event)
         return False
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index) -> None:
+        # 일일정산서 - 화주별 데이터 테이블인 경우
+        if self.table_type == 0:
+            '''
+            if index.row() in [3, 4, 10, 11]:
+                painter.fillRect(option.rect, QColor(255,229,204))
+            else:
+                painter.fillRect(option.rect, QColor(204,229,255))
+            '''
+        super().paint(painter, option, index)
+
+

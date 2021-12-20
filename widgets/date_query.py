@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton
+from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton, QHeaderView
 from PySide6.QtCore import Signal
 
 from widgets.simple import TableView
@@ -28,19 +28,23 @@ class DayCalQueryResult(QDialog):
             self.owner_list.append(DayCalOwner(values.get_owner_name(), values.get_owner_type(), values.get_owner_id()))
 
         # 입력 테이블 생성(화주별 데이터)
-        self.input_table = TableView()
+        self.input_table = TableView(0)
         self.data_model = DayCalTableModel(self, self.owner_list, self.owner_values)
         self.input_table.setModel(self.data_model)
+        self.input_table.verticalHeader().setMinimumWidth(170)
 
         # 기타 테이블 생성(기타 데이터)
-        self.other_table = TableView()
+        self.other_table = TableView(1)
         self.other_data_model = DayCalOthersTableModel(self, self.other_values)
         self.other_table.setModel(self.other_data_model)
+        self.other_table.verticalHeader().setMinimumWidth(170)
+        self.other_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # 결과 테이블 생성
-        self.result_table = TableView()
+        self.result_table = TableView(2)
         self.result_data_model = DayCalResultTableModel(self, self.result)
         self.result_table.setModel(self.result_data_model)
+        self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         self.init_ui()
 
@@ -61,7 +65,7 @@ class DayCalQueryResult(QDialog):
         self.setLayout(grid)
 
         # 초기 윈도우사이즈 설정
-        self.setGeometry(100, 100, 1446, 620)
+        self.setGeometry(100, 100, 1446, 643)
 
         # 스타일 설정
         self.setStyleSheet("background-color: #FFFFFF")

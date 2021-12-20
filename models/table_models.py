@@ -154,6 +154,7 @@ class DayCalOthersTableModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent, *args)
         self.setParent(parent)
         self.table_data = [data]
+        self.horizontal_header = ['금액']
         self.vertical_header = ['경매 사무실 입금', '가라경매 강동 입금', '직접 지출', '우리 경매', '강동 사입']
         self.row_count = len(self.vertical_header)
         self.column_count = 1
@@ -178,6 +179,8 @@ class DayCalOthersTableModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if orientation == Qt.Vertical:
                 return self.vertical_header[section]
+            else:
+                return self.horizontal_header[section]
         return None
 
     def flags(self, index):
@@ -200,7 +203,7 @@ class DayCalResultTableModel(QAbstractTableModel):
     def __init__(self, parent, result_data, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self.setParent(parent)
-        self.horizontal_header = ['계']
+        self.horizontal_header = ['합계']
         self.vertical_header = ['강동총금액 합계', '강동운임 합계', '강동하차비 합계', '강동수수료 4% 합계', '공제후금액 합계',
                                 '중매수수료 5% 합계', '화주운임 합계', '화주하차비 합계', '상장수수료 4% 합계', '경매확인',
                                 '경매 차액', '중개수수료 5%', '경매 차익']
