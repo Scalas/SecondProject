@@ -34,7 +34,6 @@ class DayCal(QWidget):
         self.result_data_model = DayCalResultTableModel(self, actions.get_daycal_result())
         self.result_table.setModel(self.result_data_model)
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
         self.init_ui()
 
     # ui 초기화

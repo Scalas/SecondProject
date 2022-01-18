@@ -75,6 +75,14 @@ class MainWindow(QMainWindow, QObject):
         file_menu.addAction(save_data)
         tool_bar.addAction(save_data)
 
+        # 인쇄 액션 추가
+        print_data = QAction(QIcon('src/img/print_icon.png'), '인쇄하기', self)
+        print_data.setShortcut('Ctrl+P')
+        print_data.setStatusTip('인쇄')
+        print_data.triggered.connect(lambda: actions.daycal_print(self.central_widget.doc_tab.tab1))
+        file_menu.addAction(print_data)
+        tool_bar.addAction(print_data)
+
         # 앱의 Central Widget 에 self.central_widget 설정
         self.setCentralWidget(self.central_widget)
 

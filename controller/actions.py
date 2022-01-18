@@ -1,6 +1,11 @@
 from datetime import date
 
+from PySide6.QtCore import QPoint
 from PySide6.QtWidgets import QApplication, QLabel, QGridLayout, QPushButton, QLineEdit, QComboBox, QRadioButton
+from PySide6.QtPrintSupport import QPrinter
+from PySide6.QtGui import QPageLayout, QPainter, QPageSize
+from PySide6.QtWidgets import QWidget
+
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import and_
@@ -169,6 +174,21 @@ def modify_owner(main_window, table_widget, name_data=None):
 
 def save():
     session.commit()
+
+
+# 인쇄 기능
+def daycal_print(print_widget: QWidget):
+    printer = QPrinter(QPrinter.HighResolution)
+    printer.setPageOrientation(QPageLayout.Landscape)
+    printer.setPageSize(QPageSize.A4Small)
+    printer.setFullPage(False)
+    painter = QPainter()
+    painter.begin(printer)
+    rect = printer.pageLayout().paintRectPixels(printer.resolution())
+    scale = min(rect.width() / print_widget.width(), rect.height() / print_widget.height())
+    painter.scale(scale, scale)
+    print_widget.render(painter, QPoint(5, 5))
+    painter.end()
 
 
 # DB 액션
