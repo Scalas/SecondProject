@@ -71,9 +71,9 @@ class TableView(QTableView):
     def keyPressEvent(self, event: QKeyEvent) -> None:
         key = event.key()
         if key == Qt.Key_Delete:
-            idx = self.currentIndex()
-            if self.model().flags(idx) & Qt.ItemIsEditable:
-                self.model().setData(idx, 0, Qt.EditRole)
+            for idx in self.selectionModel().selectedIndexes():
+                if self.model().flags(idx) & Qt.ItemIsEditable:
+                    self.model().setData(idx, 0, Qt.EditRole)
             self.repaint()
         elif key == Qt.Key_Return or key == Qt.Key_Enter:
             index = self.moveCursor(QAbstractItemView.MoveDown, Qt.NoModifier)
