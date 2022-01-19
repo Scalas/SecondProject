@@ -1,3 +1,5 @@
+from datetime import date
+
 import json
 
 from sqlalchemy import create_engine

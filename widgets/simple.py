@@ -1,7 +1,7 @@
 from PySide6.QtCore import QDateTime, QTimer, QEvent, QObject, Signal
 from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar, QStyleOptionViewItem, QFrame
 from PySide6.QtGui import QKeyEvent, QMouseEvent, QPainter, QPalette, QColor
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QItemSelection
 
 
 class StatusBar(QStatusBar):
@@ -14,8 +14,8 @@ class StatusBar(QStatusBar):
 class TimeLabel(QLabel):
     clicked = Signal()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.timeout)
         self.timer.start(100)
@@ -29,6 +29,21 @@ class TimeLabel(QLabel):
 
     def mouseReleaseEvent(self, ev: QMouseEvent) -> None:
         self.clicked.emit()
+
+
+# 선택된 셀의 합을 표시하는 레이블
+class SelectedTotalLabel(QLabel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.total = 0
+        self.init_ui()
+
+    def init_ui(self):
+        self.setText("  선택된 셀 합계: 0")
+
+    def set_sum(self, sum_val):
+        self.total = sum_val
+        self.setText("  선택된 셀 합계: %d" % sum_val)
 
 
 # 다이얼로그(QDialog 상속)
@@ -47,8 +62,10 @@ class Dialog(QDialog):
 
 # QTableView 커스터마이징(QTableView 상속)
 class TableView(QTableView):
-    def __init__(self, table_type):
-        super().__init__()
+    selected_total_changed = Signal(int)
+
+    def __init__(self, parent, table_type):
+        super().__init__(parent)
         self.setItemDelegate(ItemDelegate(self, table_type))
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
@@ -64,6 +81,13 @@ class TableView(QTableView):
             self.selectionModel().setCurrentIndex(index, command)
         else:
             return super().keyPressEvent(event)
+
+    def selectionChanged(self, selected:QItemSelection, deselected:QItemSelection) -> None:
+        total = 0
+        for index in self.selectionModel().selectedIndexes():
+            total += self.model().data(index, Qt.EditRole)
+        self.selected_total_changed.emit(total)
+        super().selectionChanged(selected, deselected)
 
 
 class ItemDelegate(QStyledItemDelegate):

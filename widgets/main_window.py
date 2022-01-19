@@ -1,12 +1,12 @@
-from PySide6.QtCore import QObject, QEvent
-from PySide6.QtGui import QIcon, QAction, QMouseEvent
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QGridLayout
 
 from controller.config_manager import set_geometry, get_geometry
 from controller.db_manager import close_db
 from controller import actions
 from widgets.docs_window import DocTab, DayCal, SH, BalancedSheet
-from widgets.simple import TimeLabel, StatusBar
+from widgets.simple import TimeLabel, StatusBar, SelectedTotalLabel
 
 
 class MainWindow(QMainWindow, QObject):
@@ -14,6 +14,8 @@ class MainWindow(QMainWindow, QObject):
     def __init__(self):
         super().__init__()
         self.central_widget = CentralWidget(self)
+        self.selected_total_label = SelectedTotalLabel(self)
+        self.central_widget.selection_changed.connect(self.selected_total_label.set_sum)
         self.init_ui()
 
     # ui 초기화
@@ -22,8 +24,9 @@ class MainWindow(QMainWindow, QObject):
         status_bar = self.statusBar()
 
         # 시간 레이블 추가
-        time_label = TimeLabel()
+        time_label = TimeLabel(self)
         time_label.clicked.connect(lambda: actions.date_query(self, self.central_widget.get_selected_tab()))
+        status_bar.addWidget(self.selected_total_label)
         status_bar.addPermanentWidget(time_label)
 
         # 메뉴바 생성
@@ -130,10 +133,12 @@ class MainWindow(QMainWindow, QObject):
 
 # 중앙 위젯
 class CentralWidget(QWidget):
+    selection_changed = Signal(int)
+
     def __init__(self, parent):
         super().__init__(parent)
-        self.doc_tab = DocTab()
-        self.doc_tab.setParent(self)
+        self.doc_tab = DocTab(self)
+        self.doc_tab.selection_changed.connect(self.selection_changed.emit)
         self.init_ui()
 
     def init_ui(self):

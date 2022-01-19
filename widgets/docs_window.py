@@ -1,12 +1,15 @@
 from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView, QHeaderView
+from PySide6.QtCore import Signal
 
-from controller import actions, db_manager
+from controller import actions
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
 from widgets.simple import TableView
 
 
 # 일일 정산서 계산서 위젯
 class DayCal(QWidget):
+    selected_total_changed = Signal(int)
+
     # 생성자
     def __init__(self):
         super().__init__()
@@ -17,22 +20,25 @@ class DayCal(QWidget):
         self.result = actions.get_daycal_result()
 
         # 입력 테이블 생성(화주별 데이터)
-        self.input_table = TableView(0)
+        self.input_table = TableView(self, 0)
         self.data_model = DayCalTableModel(self, actions.get_daycal_owner_list(), actions.get_daycal_owner_values())
         self.input_table.setModel(self.data_model)
+        self.input_table.selected_total_changed.connect(self.selection_changed)
         self.input_table.verticalHeader().setMinimumWidth(170)
 
         # 기타 테이블 생성(기타 데이터)
-        self.other_table = TableView(1)
+        self.other_table = TableView(self, 1)
         self.other_data_model = DayCalOthersTableModel(self, actions.get_daycal_other_values())
         self.other_table.setModel(self.other_data_model)
+        self.other_table.selected_total_changed.connect(self.selection_changed)
         self.other_table.verticalHeader().setMinimumWidth(170)
         self.other_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # 결과 테이블 생성
-        self.result_table = TableView(2)
+        self.result_table = TableView(self, 2)
         self.result_data_model = DayCalResultTableModel(self, actions.get_daycal_result())
         self.result_table.setModel(self.result_data_model)
+        self.result_table.selected_total_changed.connect(self.selection_changed)
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.init_ui()
 
@@ -63,6 +69,9 @@ class DayCal(QWidget):
     def owner_modified(self, modified_id, chg_name):
         self.data_model.owner_modified(modified_id, chg_name)
 
+    def selection_changed(self, total):
+        self.selected_total_changed.emit(total)
+
 
 # 대차대조표 위젯
 class BalancedSheet(QWidget):
@@ -76,10 +85,13 @@ class SH(QWidget):
 
 # 문서 탭 위젯
 class DocTab(QTabWidget):
-    def __init__(self):
-        super().__init__()
+    selection_changed = Signal(int)
+
+    def __init__(self, parent):
+        super().__init__(parent)
         self.tab1 = DayCal()
         self.tab1.setParent(self)
+        self.tab1.selected_total_changed.connect(self.selection_changed.emit)
         self.tab2 = BalancedSheet()
         self.tab2.setParent(self)
         self.tab3 = SH()

@@ -1,9 +1,10 @@
-from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton, QHeaderView
+from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton, QHeaderView, QHBoxLayout
 from PySide6.QtCore import Signal
 
-from widgets.simple import TableView
+from widgets.simple import TableView, SelectedTotalLabel
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
 from models.db_models import DayCalOwner
+from controller import actions
 
 
 # 날짜로 조회한 데이터를 표시하기 위한 위젯
@@ -18,8 +19,18 @@ class DayCalQueryResult(QDialog):
         self.owner_values = owner_values
         self.other_values = other_values
         self.result = result
-        self.save = QPushButton('저장')
-        self.save.clicked.connect(lambda: self.submitted.emit())
+
+        # 인쇄, 저장 버튼
+        self.buttons = QHBoxLayout()
+        self.save_button = QPushButton('저장')
+        self.save_button.clicked.connect(lambda: self.submitted.emit())
+        self.print_button = QPushButton('인쇄')
+        self.print_button.clicked.connect(self.print_result)
+
+        # 선택된 셀의 합계
+        self.selected_total_label = SelectedTotalLabel(self)
+
+        # 오늘 날짜
         self.today = today
 
         # 화주별 데이터를 기반으로 임시 화주 명단을 생성
@@ -28,22 +39,25 @@ class DayCalQueryResult(QDialog):
             self.owner_list.append(DayCalOwner(values.get_owner_name(), values.get_owner_type(), values.get_owner_id()))
 
         # 입력 테이블 생성(화주별 데이터)
-        self.input_table = TableView(0)
+        self.input_table = TableView(self, 0)
         self.data_model = DayCalTableModel(self, self.owner_list, self.owner_values)
         self.input_table.setModel(self.data_model)
+        self.input_table.selected_total_changed.connect(self.selected_total_changed)
         self.input_table.verticalHeader().setMinimumWidth(170)
 
         # 기타 테이블 생성(기타 데이터)
-        self.other_table = TableView(1)
+        self.other_table = TableView(self, 1)
         self.other_data_model = DayCalOthersTableModel(self, self.other_values)
         self.other_table.setModel(self.other_data_model)
+        self.other_table.selected_total_changed.connect(self.selected_total_changed)
         self.other_table.verticalHeader().setMinimumWidth(170)
         self.other_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # 결과 테이블 생성
-        self.result_table = TableView(2)
+        self.result_table = TableView(self, 2)
         self.result_data_model = DayCalResultTableModel(self, self.result)
         self.result_table.setModel(self.result_data_model)
+        self.result_table.selected_total_changed.connect(self.selected_total_changed)
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         self.init_ui()
@@ -57,9 +71,16 @@ class DayCalQueryResult(QDialog):
         grid.addWidget(self.input_table, 0, 0)
         grid.addWidget(self.other_table, 1, 0)
         grid.addWidget(self.result_table, 0, 1, 2, 1)
-        grid.addWidget(self.save, 2, 1)
+
+        # 버튼 추가
+        self.buttons.addWidget(self.print_button)
+        self.buttons.addWidget(self.save_button)
+        grid.addLayout(self.buttons, 2, 1)
         grid.setRowStretch(0, 5)
         grid.setColumnStretch(0, 5)
+
+        # 선택된 셀의 합계 추가
+        grid.addWidget(self.selected_total_label, 2, 0)
 
         # 레이아웃 세팅
         self.setLayout(grid)
@@ -72,6 +93,18 @@ class DayCalQueryResult(QDialog):
 
         # 타이틀 설정
         self.setWindowTitle("일일정산서 계산서: " + self.today)
+
+    # 인쇄
+    def print_result(self):
+        self.save_button.hide()
+        self.print_button.hide()
+        actions.daycal_print(self)
+        self.save_button.show()
+        self.print_button.show()
+
+    # 선택된 셀의 합계 갱신
+    def selected_total_changed(self, total):
+        self.selected_total_label.set_sum(total)
 
 
 # 날짜로 데이터 조회를 위한 달력 위젯

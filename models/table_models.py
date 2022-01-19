@@ -10,7 +10,19 @@ class DayCalTableModel(QAbstractTableModel):
         self.setParent(parent)
         self.table_data = data
         self.owner_list = owner_list
-        self.vertical_header = ['강동총금액', '강동운임', '강동하차비', '강동수수료 4%', '공제후 금액', '중매수수료 5%', '화주운임', '화주하차비', '상장수수료 4%', '강동선지급금', '공제합계', '선지급금포함 공제합계']
+        self.vertical_header = [
+            '강동총금액',
+            '강동운임',
+            '강동하차비',
+            '강동수수료 4%',
+            '공제후 금액',
+            '   중매수수료 5%',
+            '   화주운임',
+            '   화주하차비',
+            '   상장수수료 4%',
+            '   강동선지급금',
+            '   공제합계',
+            '   선지급금포함 공제합계']
         self.row_count = len(self.vertical_header)
         self.column_count = len(self.owner_list)
 
