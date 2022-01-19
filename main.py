@@ -10,7 +10,7 @@ from controller.db_manager import session
 if __name__ == '__main__':
     # 매달 5일이 되면 이번달의 데이터를 제외한 데이터를 모두 삭제
     today = date.today()
-    if today.day == 19:
+    if today.day == 5:
         first_day = date(today.year, today.month, 1)
         target = session.query(DayCalOwnerValues).filter(DayCalOwnerValues.date < first_day).all()
         for t in target:
