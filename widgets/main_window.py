@@ -50,7 +50,7 @@ class MainWindow(QMainWindow, QObject):
         create_owner = QAction(QIcon('src/img/create_owner_icon.png'), '화주 추가', self)
         create_owner.setShortcut('Ctrl+Shift+A')
         create_owner.setStatusTip('화주 추가')
-        create_owner.triggered.connect(lambda: actions.create_owner(self, self.central_widget.doc_tab.tab1))
+        create_owner.triggered.connect(lambda: actions.create_owner(self, self.central_widget.doc_tab.tabs[0]))
         file_menu.addAction(create_owner)
         tool_bar.addAction(create_owner)
 
@@ -58,7 +58,7 @@ class MainWindow(QMainWindow, QObject):
         delete_owner = QAction(QIcon('src/img/delete_owner_icon.png'), '화주 삭제', self)
         delete_owner.setShortcut('Ctrl+Shift+R')
         delete_owner.setStatusTip('화주 삭제')
-        delete_owner.triggered.connect(lambda: actions.delete_owner(self, self.central_widget.doc_tab.tab1))
+        delete_owner.triggered.connect(lambda: actions.delete_owner(self, self.central_widget.doc_tab.tabs[0]))
         file_menu.addAction(delete_owner)
         tool_bar.addAction(delete_owner)
 
@@ -66,7 +66,7 @@ class MainWindow(QMainWindow, QObject):
         modify_owner = QAction(QIcon('src/img/modify_owner_icon.png'), '화주 이름 변경', self)
         modify_owner.setShortcut('Ctrl+Shift+C')
         modify_owner.setStatusTip('화주 이름 변경')
-        modify_owner.triggered.connect(lambda: actions.modify_owner(self, self.central_widget.doc_tab.tab1))
+        modify_owner.triggered.connect(lambda: actions.modify_owner(self, self.central_widget.doc_tab.tabs[0]))
         file_menu.addAction(modify_owner)
         tool_bar.addAction(modify_owner)
 
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow, QObject):
         print_data = QAction(QIcon('src/img/print_icon.png'), '인쇄하기', self)
         print_data.setShortcut('Ctrl+P')
         print_data.setStatusTip('인쇄')
-        print_data.triggered.connect(lambda: actions.daycal_print(self.central_widget.doc_tab.tab1))
+        print_data.triggered.connect(lambda: actions.daycal_print(self.central_widget.doc_tab.tabs[0]))
         file_menu.addAction(print_data)
         tool_bar.addAction(print_data)
 

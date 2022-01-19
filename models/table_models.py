@@ -63,8 +63,12 @@ class DayCalTableModel(QAbstractTableModel):
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
-    def setData(self, index: QModelIndex, value, role):
+    def setData(self, index: QModelIndex, value: int, role):
         if role == Qt.EditRole:
+            try:
+                value = int(value)
+            except ValueError:
+                return False
             r, c = index.row(), index.column()
             self.changed(r, c, self.table_data[c].get(r), int(value))
             self.table_data[c].set(r, int(value))
@@ -199,8 +203,12 @@ class DayCalOthersTableModel(QAbstractTableModel):
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
-    def setData(self, index: QModelIndex, value, role):
+    def setData(self, index: QModelIndex, value: int, role):
         if role == Qt.EditRole:
+            try:
+                value = int(value)
+            except ValueError:
+                return False
             r, c = index.row(), index.column()
             self.changed(r, c, self.table_data[c].get(r), int(value))
             self.table_data[c].set(r, int(value))
@@ -263,8 +271,12 @@ class DayCalResultTableModel(QAbstractTableModel):
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
-    def setData(self, index: QModelIndex, value, role):
+    def setData(self, index: QModelIndex, value: int, role):
         if role == Qt.EditRole:
+            try:
+                value = int(value)
+            except ValueError:
+                return False
             r, c = index.row(), index.column()
             self.changed(r, c, self.table_data[c].get(r), int(value))
             self.table_data[c].set(r, int(value))
