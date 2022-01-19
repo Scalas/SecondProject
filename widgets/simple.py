@@ -1,5 +1,5 @@
 from PySide6.QtCore import QDateTime, QTimer, QEvent, QObject, Signal
-from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar, QStyleOptionViewItem, QFrame
+from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar, QLineEdit, QItemDelegate
 from PySide6.QtGui import QKeyEvent, QMouseEvent, QPainter, QPalette, QColor
 from PySide6.QtCore import Qt, QItemSelection
 
@@ -22,10 +22,11 @@ class TimeLabel(QLabel):
         self.init_ui()
 
     def init_ui(self):
-        self.setText(QDateTime.currentDateTime().toString('yyyy년 MM월 dd일 ddd hh:mm:ss'))
+        self.setStyleSheet("font-size: 17px;")
+        self.setText(QDateTime.currentDateTime().toString(' yyyy년 MM월 dd일 ddd hh:mm:ss'))
 
     def timeout(self):
-        self.setText(QDateTime.currentDateTime().toString('yyyy년 MM월 dd일 ddd hh:mm:ss'))
+        self.setText(QDateTime.currentDateTime().toString(' yyyy년 MM월 dd일 ddd hh:mm:ss'))
 
     def mouseReleaseEvent(self, ev: QMouseEvent) -> None:
         self.clicked.emit()
@@ -39,11 +40,12 @@ class SelectedTotalLabel(QLabel):
         self.init_ui()
 
     def init_ui(self):
-        self.setText("  선택된 셀 합계: 0")
+        self.setStyleSheet("font-size: 20px;")
+        self.setText("0")
 
     def set_sum(self, sum_val):
         self.total = sum_val
-        self.setText("  선택된 셀 합계: %d" % sum_val)
+        self.setText(format(sum_val, ','))
 
 
 # 다이얼로그(QDialog 상속)
@@ -67,6 +69,8 @@ class TableView(QTableView):
     def __init__(self, parent, table_type):
         super().__init__(parent)
         self.setItemDelegate(ItemDelegate(self, table_type))
+        self.selected_total = 0
+        self.type = table_type
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         key = event.key()
@@ -85,12 +89,13 @@ class TableView(QTableView):
     def selectionChanged(self, selected:QItemSelection, deselected:QItemSelection) -> None:
         total = 0
         for index in self.selectionModel().selectedIndexes():
-            total += self.model().data(index, Qt.EditRole)
-        self.selected_total_changed.emit(total)
+            total += int(self.model().data(index, Qt.EditRole))
+        self.selected_total = total
+        self.selected_total_changed.emit(self.type)
         super().selectionChanged(selected, deselected)
 
 
-class ItemDelegate(QStyledItemDelegate):
+class ItemDelegate(QItemDelegate):
     def __init__(self, parent: TableView, table_type):
         super().__init__()
         self.setParent(parent)
@@ -106,15 +111,7 @@ class ItemDelegate(QStyledItemDelegate):
         super().eventFilter(object, event)
         return False
 
-    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index) -> None:
-        # 일일정산서 - 화주별 데이터 테이블인 경우
-        if self.table_type == 0:
-            '''
-            if index.row() in [3, 4, 10, 11]:
-                painter.fillRect(option.rect, QColor(255,229,204))
-            else:
-                painter.fillRect(option.rect, QColor(204,229,255))
-            '''
-        super().paint(painter, option, index)
 
-
+class CellEditor(QLineEdit):
+    def __init__(self, parent):
+        super().__init__(parent)

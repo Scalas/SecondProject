@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton, QHeaderView, QHBoxLayout
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 
 from widgets.simple import TableView, SelectedTotalLabel
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
@@ -29,6 +29,7 @@ class DayCalQueryResult(QDialog):
 
         # 선택된 셀의 합계
         self.selected_total_label = SelectedTotalLabel(self)
+        self.selected_total_label.setAlignment(Qt.AlignRight)
 
         # 오늘 날짜
         self.today = today
@@ -38,27 +39,30 @@ class DayCalQueryResult(QDialog):
         for values in self.owner_values:
             self.owner_list.append(DayCalOwner(values.get_owner_name(), values.get_owner_type(), values.get_owner_id()))
 
+        # 테이블 리스트
+        self.tables = []
+
         # 입력 테이블 생성(화주별 데이터)
-        self.input_table = TableView(self, 0)
-        self.data_model = DayCalTableModel(self, self.owner_list, self.owner_values)
-        self.input_table.setModel(self.data_model)
-        self.input_table.selected_total_changed.connect(self.selected_total_changed)
-        self.input_table.verticalHeader().setMinimumWidth(170)
+        input_table = TableView(self, 0)
+        input_table.setModel(DayCalTableModel(self, self.owner_list, self.owner_values))
+        input_table.selected_total_changed.connect(self.selection_changed)
+        input_table.verticalHeader().setMinimumWidth(170)
+        self.tables.append(input_table)
 
         # 기타 테이블 생성(기타 데이터)
-        self.other_table = TableView(self, 1)
-        self.other_data_model = DayCalOthersTableModel(self, self.other_values)
-        self.other_table.setModel(self.other_data_model)
-        self.other_table.selected_total_changed.connect(self.selected_total_changed)
-        self.other_table.verticalHeader().setMinimumWidth(170)
-        self.other_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        other_table = TableView(self, 1)
+        other_table.setModel(DayCalOthersTableModel(self, self.other_values))
+        other_table.selected_total_changed.connect(self.selection_changed)
+        other_table.verticalHeader().setMinimumWidth(170)
+        other_table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tables.append(other_table)
 
         # 결과 테이블 생성
-        self.result_table = TableView(self, 2)
-        self.result_data_model = DayCalResultTableModel(self, self.result)
-        self.result_table.setModel(self.result_data_model)
-        self.result_table.selected_total_changed.connect(self.selected_total_changed)
-        self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        result_table = TableView(self, 2)
+        result_table.setModel(DayCalResultTableModel(self, self.result))
+        result_table.selected_total_changed.connect(self.selection_changed)
+        result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tables.append(result_table)
 
         self.init_ui()
 
@@ -68,9 +72,9 @@ class DayCalQueryResult(QDialog):
         grid = QGridLayout()
 
         # 테이블위젯 추가
-        grid.addWidget(self.input_table, 0, 0)
-        grid.addWidget(self.other_table, 1, 0)
-        grid.addWidget(self.result_table, 0, 1, 2, 1)
+        grid.addWidget(self.tables[0], 0, 0)
+        grid.addWidget(self.tables[1], 1, 0)
+        grid.addWidget(self.tables[2], 0, 1, 2, 1)
 
         # 버튼 추가
         self.buttons.addWidget(self.print_button)
@@ -98,13 +102,18 @@ class DayCalQueryResult(QDialog):
     def print_result(self):
         self.save_button.hide()
         self.print_button.hide()
+        self.selected_total_label.hide()
         actions.daycal_print(self)
         self.save_button.show()
         self.print_button.show()
+        self.selected_total_label.show()
 
     # 선택된 셀의 합계 갱신
-    def selected_total_changed(self, total):
-        self.selected_total_label.set_sum(total)
+    def selection_changed(self, table_type):
+        self.selected_total_label.set_sum(self.tables[table_type].selected_total)
+
+    def close(self):
+        self.parent().repaint()
 
 
 # 날짜로 데이터 조회를 위한 달력 위젯

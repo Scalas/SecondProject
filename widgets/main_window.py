@@ -15,7 +15,7 @@ class MainWindow(QMainWindow, QObject):
         super().__init__()
         self.central_widget = CentralWidget(self)
         self.selected_total_label = SelectedTotalLabel(self)
-        self.central_widget.selection_changed.connect(self.selected_total_label.set_sum)
+        self.central_widget.selected_total_changed.connect(lambda: self.selected_total_label.set_sum(self.central_widget.selected_total))
         self.init_ui()
 
     # ui 초기화
@@ -26,8 +26,8 @@ class MainWindow(QMainWindow, QObject):
         # 시간 레이블 추가
         time_label = TimeLabel(self)
         time_label.clicked.connect(lambda: actions.date_query(self, self.central_widget.get_selected_tab()))
-        status_bar.addWidget(self.selected_total_label)
-        status_bar.addPermanentWidget(time_label)
+        status_bar.addPermanentWidget(self.selected_total_label)
+        status_bar.addWidget(time_label)
 
         # 메뉴바 생성
         menu_bar = self.menuBar()
@@ -133,12 +133,15 @@ class MainWindow(QMainWindow, QObject):
 
 # 중앙 위젯
 class CentralWidget(QWidget):
-    selection_changed = Signal(int)
+    selected_total_changed = Signal()
 
     def __init__(self, parent):
         super().__init__(parent)
+        # 선택된 셀의 합계
+        self.selected_total = 0
+
         self.doc_tab = DocTab(self)
-        self.doc_tab.selection_changed.connect(self.selection_changed.emit)
+        self.doc_tab.selected_total_changed.connect(self.selection_changed)
         self.init_ui()
 
     def init_ui(self):
@@ -155,4 +158,8 @@ class CentralWidget(QWidget):
 
     def get_selected_tab(self):
         cur = self.doc_tab.currentWidget()
-        return 0 if cur == self.doc_tab.tab1 else 1 if self.doc_tab.tab2 else 2
+        return self.doc_tab.tabs.index(cur)
+
+    def selection_changed(self):
+        self.selected_total = self.doc_tab.selected_total
+        self.selected_total_changed.emit()

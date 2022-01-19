@@ -11,18 +11,18 @@ class DayCalTableModel(QAbstractTableModel):
         self.table_data = data
         self.owner_list = owner_list
         self.vertical_header = [
-            '강동총금액',
-            '강동운임',
-            '강동하차비',
-            '강동수수료 4%',
-            '공제후 금액',
-            '   중매수수료 5%',
-            '   화주운임',
-            '   화주하차비',
-            '   상장수수료 4%',
-            '   강동선지급금',
-            '   공제합계',
-            '   선지급금포함 공제합계']
+            ' 강동총금액',
+            ' 강동운임',
+            ' 강동하차비',
+            ' 강동수수료 4%',
+            ' 공제후 금액',
+            '       중매수수료 5%',
+            '       화주운임',
+            '       화주하차비',
+            '       상장수수료 4%',
+            '       강동선지급금',
+            '       공제합계',
+            ' 선지급금포함 공제합계']
         self.row_count = len(self.vertical_header)
         self.column_count = len(self.owner_list)
 
@@ -38,7 +38,7 @@ class DayCalTableModel(QAbstractTableModel):
                 value = self.table_data[index.column()].get(index.row())
                 return format(value, ',')
             elif role == Qt.EditRole:
-                value = self.table_data[index.column()].get(index.row())
+                value = str(self.table_data[index.column()].get(index.row()))
                 return value
             elif role == Qt.TextAlignmentRole:
                 return int(Qt.AlignRight | Qt.AlignVCenter)
@@ -63,11 +63,11 @@ class DayCalTableModel(QAbstractTableModel):
             return Qt.ItemIsSelectable | Qt.ItemIsEnabled
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
-    def setData(self, index: QModelIndex, value: int, role):
+    def setData(self, index: QModelIndex, value, role):
         if role == Qt.EditRole:
             r, c = index.row(), index.column()
-            self.changed(r, c, self.table_data[c].get(r), value)
-            self.table_data[c].set(r, value)
+            self.changed(r, c, self.table_data[c].get(r), int(value))
+            self.table_data[c].set(r, int(value))
             return True
         return False
 
@@ -117,8 +117,8 @@ class DayCalTableModel(QAbstractTableModel):
             self.setData(self.index(4, column), val, Qt.EditRole)
 
             # => 결과테이블 합계값
-            self.parent().result_data_model.out_changed(0, row, org, chg)
-            self.parent().result_table.repaint()
+            self.parent().tables[2].model().out_changed(0, row, org, chg)
+            self.parent().tables[2].repaint()
 
         # 강동운임 ~ 강동수수료
         elif 1 <= row <= 3:
@@ -128,13 +128,13 @@ class DayCalTableModel(QAbstractTableModel):
             self.setData(self.index(4, column), val, Qt.EditRole)
 
             # => 결과테이블 합계값
-            self.parent().result_data_model.out_changed(0, row, org, chg)
-            self.parent().result_table.repaint()
+            self.parent().tables[2].model().out_changed(0, row, org, chg)
+            self.parent().tables[2].repaint()
 
         elif row == 4:
             # => 결과테이블 합계값
-            self.parent().result_data_model.out_changed(0, row, org, chg)
-            self.parent().result_table.repaint()
+            self.parent().tables[2].model().out_changed(0, row, org, chg)
+            self.parent().tables[2].repaint()
 
         # 중매수수료 5% ~ 상장수수료 4%
         elif 5 <= row <= 8:
@@ -144,8 +144,8 @@ class DayCalTableModel(QAbstractTableModel):
             self.setData(self.index(10, column), val, Qt.EditRole)
 
             # => 결과테이블 합계값
-            self.parent().result_data_model.out_changed(0, row, org, chg)
-            self.parent().result_table.repaint()
+            self.parent().tables[2].model().out_changed(0, row, org, chg)
+            self.parent().tables[2].repaint()
 
         # 강동선지급금
         elif row == 9:
@@ -168,7 +168,7 @@ class DayCalOthersTableModel(QAbstractTableModel):
         self.setParent(parent)
         self.table_data = [data]
         self.horizontal_header = ['금액']
-        self.vertical_header = ['경매 사무실 입금', '가라경매 강동 입금', '직접 지출', '우리 경매', '강동 사입']
+        self.vertical_header = [' 경매 사무실 입금', ' 가라경매 강동 입금', ' 직접 지출', ' 우리 경매', ' 강동 사입']
         self.row_count = len(self.vertical_header)
         self.column_count = 1
 
@@ -183,7 +183,7 @@ class DayCalOthersTableModel(QAbstractTableModel):
             value = self.table_data[index.column()].get(index.row())
             return format(value, ',')
         elif role == Qt.EditRole:
-            value = self.table_data[index.column()].get(index.row())
+            value = str(self.table_data[index.column()].get(index.row()))
             return value
         elif role == Qt.TextAlignmentRole:
             return int(Qt.AlignRight | Qt.AlignVCenter)
@@ -199,17 +199,17 @@ class DayCalOthersTableModel(QAbstractTableModel):
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
-    def setData(self, index: QModelIndex, value: int, role):
+    def setData(self, index: QModelIndex, value, role):
         if role == Qt.EditRole:
             r, c = index.row(), index.column()
-            self.changed(r, c, self.table_data[c].get(r), value)
-            self.table_data[c].set(r, value)
+            self.changed(r, c, self.table_data[c].get(r), int(value))
+            self.table_data[c].set(r, int(value))
             return True
         return False
 
     def changed(self, row, column, org, chg):
-        self.parent().result_data_model.out_changed(1, row, org, chg)
-        self.parent().result_table.repaint()
+        self.parent().tables[2].model().out_changed(1, row, org, chg)
+        self.parent().tables[2].repaint()
 
 
 class DayCalResultTableModel(QAbstractTableModel):
@@ -217,9 +217,20 @@ class DayCalResultTableModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self, parent, *args)
         self.setParent(parent)
         self.horizontal_header = ['합계']
-        self.vertical_header = ['강동총금액 합계', '강동운임 합계', '강동하차비 합계', '강동수수료 4% 합계', '공제후금액 합계',
-                                '중매수수료 5% 합계', '화주운임 합계', '화주하차비 합계', '상장수수료 4% 합계', '경매확인',
-                                '경매 차액', '중개수수료 5%', '경매 차익']
+        self.vertical_header = [
+            '  강동총금액 합계',
+            '  운임 합계',
+            '  하차비 합계',
+            '  수수료 4% 합계',
+            ' 공제후금액 합계',
+            '       중매수수료계',
+            '       화주운임계',
+            '       화주하차비계',
+            '       상장4%계',
+            '  경매확인',
+            '  경매 차액',
+            '  중개수수료 5%',
+            '  경매 차익']
         self.row_count = len(self.vertical_header)
         self.column_count = 1
 
@@ -236,7 +247,7 @@ class DayCalResultTableModel(QAbstractTableModel):
             value = self.table_data[index.column()].get(index.row())
             return format(value, ',')
         elif role == Qt.EditRole:
-            value = self.table_data[index.column()].get(index.row())
+            value = str(self.table_data[index.column()].get(index.row()))
             return value
         elif role == Qt.TextAlignmentRole:
             return int(Qt.AlignRight | Qt.AlignVCenter)
@@ -252,11 +263,11 @@ class DayCalResultTableModel(QAbstractTableModel):
     def flags(self, index):
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled
 
-    def setData(self, index: QModelIndex, value: int, role):
+    def setData(self, index: QModelIndex, value, role):
         if role == Qt.EditRole:
             r, c = index.row(), index.column()
-            self.changed(r, c, self.table_data[c].get(r), value)
-            self.table_data[c].set(r, value)
+            self.changed(r, c, self.table_data[c].get(r), int(value))
+            self.table_data[c].set(r, int(value))
             return True
         return False
 
