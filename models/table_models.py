@@ -72,7 +72,8 @@ class DayCalTableModel(QAbstractTableModel):
             if self.owner_list[i].get(0) == owner_id:
                 idx = i
                 break
-
+        for row in range(12):
+            self.setData(self.index(row, idx), 0, Qt.EditRole)
         self.beginRemoveColumns(QModelIndex(), idx, idx)
         self.table_data.pop(idx)
         self.owner_list.pop(idx)
