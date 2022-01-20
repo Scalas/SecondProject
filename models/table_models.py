@@ -226,11 +226,11 @@ class DayCalResultTableModel(QAbstractTableModel):
         self.setParent(parent)
         self.horizontal_header = ['합계']
         self.vertical_header = [
-            '  강동총금액 합계',
-            '  운임 합계',
-            '  하차비 합계',
-            '  수수료 4% 합계',
-            ' 공제후금액 합계',
+            '  강동총금액계',
+            '  강동운임계',
+            '  강동하차비계',
+            '  강동수수료4%계',
+            '  공제후금액 합계',
             '       중매수수료계',
             '       화주운임계',
             '       화주하차비계',
