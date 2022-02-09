@@ -210,12 +210,12 @@ class DayCalOthersTableModel(QAbstractTableModel):
             except ValueError:
                 return False
             r, c = index.row(), index.column()
-            self.changed(r, c, self.table_data[c].get(r), int(value))
+            self.changed(r, self.table_data[c].get(r), int(value))
             self.table_data[c].set(r, int(value))
             return True
         return False
 
-    def changed(self, row, column, org, chg):
+    def changed(self, row, org, chg):
         self.parent().tables[2].model().out_changed(1, row, org, chg)
         self.parent().tables[2].repaint()
 
@@ -329,7 +329,7 @@ class DayCalResultTableModel(QAbstractTableModel):
                 self.setData(self.index(9, 0), val, Qt.EditRole)
 
             # 경매 사무실 입금 ~ 강동사입
-            elif 1 <= row <= 4:
+            elif 1 <= row <= 2:
                 # => 경매 확인
                 val = self.table_data[0].get(9) + (chg - org)
                 self.setData(self.index(9, 0), val, Qt.EditRole)
