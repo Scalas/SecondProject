@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QGridLayout
 from controller.config_manager import set_geometry, get_geometry
 from controller.db_manager import close_db
 from controller import actions
-from widgets.docs_window import DocTab, DayCal, SH, BalancedSheet
+from widgets.docs_window import DocTab
 from widgets.simple import TimeLabel, StatusBar, SelectedTotalLabel
 
 
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow, QObject):
         print_data = QAction(QIcon('src/img/print_icon.png'), '인쇄하기', self)
         print_data.setShortcut('Ctrl+P')
         print_data.setStatusTip('인쇄')
-        print_data.triggered.connect(lambda: actions.daycal_print(self.central_widget.doc_tab.tabs[0]))
+        print_data.triggered.connect(lambda: self.central_widget.doc_tab.tabs[0].print_daycal())
         file_menu.addAction(print_data)
         tool_bar.addAction(print_data)
 

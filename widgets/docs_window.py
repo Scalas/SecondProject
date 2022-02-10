@@ -77,6 +77,12 @@ class DayCal(QWidget):
     def owner_modified(self, modified_id, chg_name):
         self.tables[0].model().owner_modified(modified_id, chg_name)
 
+    # 인쇄
+    def print_daycal(self):
+        for table in self.tables:
+            table.clearSelection()
+        actions.daycal_print(self)
+
     def selection_changed(self, table_type):
         self.selected_total = self.tables[table_type].selected_total
         self.selected_total_changed.emit(0)
@@ -105,15 +111,18 @@ class DocTab(QTabWidget):
         tab1 = DayCal(self)
         tab1.selected_total_changed.connect(self.selection_changed)
         self.tabs.append(tab1)
-        # self.tab2 = BalancedSheet(self)
+        tab2 = BalancedSheet(self)
+        # tab2.selected_total_changed.connect(self.selection_changed)
+        self.tabs.append(tab2)
         # self.tab3 = SH(self)
         self.init_ui()
 
     def init_ui(self):
         self.addTab(self.tabs[0], '일일정산서 계산서')
-        # self.addTab(self.tabs[1], '대차대조표')
+        self.addTab(self.tabs[1], '대차대조표')
         # self.addTab(self.tabs[2], '수협 입금')
 
     def selection_changed(self, tab_type):
         self.selected_total = self.tabs[tab_type].selected_total
         self.selected_total_changed.emit()
+
