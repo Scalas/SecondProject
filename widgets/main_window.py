@@ -3,10 +3,10 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QGridLayout
 
 from controller.config_manager import set_geometry, get_geometry
-from controller.db_manager import close_db
+from controller.db_manager import close_db, commit_db, check_db
 from controller import actions
 from widgets.docs_window import DocTab
-from widgets.simple import TimeLabel, StatusBar, SelectedTotalLabel
+from widgets.simple import TimeLabel, StatusBar, SelectedTotalLabel, SaveDialog
 
 
 class MainWindow(QMainWindow, QObject):
@@ -74,7 +74,7 @@ class MainWindow(QMainWindow, QObject):
         save_data = QAction(QIcon('src/img/save_icon.png'), '저장하기', self)
         save_data.setShortcut('Ctrl+S')
         save_data.setStatusTip('화주 이름 변경')
-        save_data.triggered.connect(actions.save)
+        save_data.triggered.connect(commit_db())
         file_menu.addAction(save_data)
         tool_bar.addAction(save_data)
 
@@ -120,9 +120,15 @@ class MainWindow(QMainWindow, QObject):
 
     # 종료시 윈도우의 위치와 크기를 설정파일에 저장
     def closeEvent(self, event):
-        QMainWindow.closeEvent(self, event)
+        if check_db():
+            save_dialog = SaveDialog(self)
+            save_dialog.show_modal()
+            if save_dialog.canceled:
+                return event.ignore()
+            if save_dialog.save_data:
+                commit_db()
+        event.accept()
         set_geometry(self.normalGeometry(), self.isMaximized())
-        close_db()
 
     # 상태표시줄 생성(오버라이드)
     def statusBar(self):

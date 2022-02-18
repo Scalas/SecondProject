@@ -1,5 +1,5 @@
 from PySide6.QtCore import QDateTime, QTimer, QEvent, QObject, Signal
-from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar, QLineEdit, QItemDelegate
+from PySide6.QtWidgets import QLabel, QDialog, QTableView, QAbstractItemView, QStyledItemDelegate, QStatusBar, QLineEdit, QItemDelegate, QGridLayout, QPushButton
 from PySide6.QtGui import QKeyEvent, QMouseEvent, QPainter, QPalette, QColor
 from PySide6.QtCore import Qt, QItemSelection
 
@@ -115,3 +115,27 @@ class ItemDelegate(QItemDelegate):
 class CellEditor(QLineEdit):
     def __init__(self, parent):
         super().__init__(parent)
+
+
+class SaveDialog(Dialog):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.init_ui()
+        self.save_data = False
+
+    def init_ui(self):
+        grid = QGridLayout()
+        grid.addWidget(QLabel('변경 사항을 저장하시겠습니까?'), 0, 0, 1, 4)
+        yes, no = QPushButton('Yes'), QPushButton('No')
+        yes.clicked.connect(self.agree)
+        no.clicked.connect(self.success)
+        grid.addWidget(yes, 1, 0, 1, 2)
+        grid.addWidget(no, 1, 2, 1, 2)
+        self.setLayout(grid)
+        self.setFixedWidth(280)
+        self.setFixedHeight(100)
+        self.setWindowTitle('저장되지 않은 변경사항이 존재합니다.')
+
+    def agree(self):
+        self.save_data = True
+        self.success()

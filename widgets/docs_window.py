@@ -1,5 +1,7 @@
-from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView, QHeaderView
-from PySide6.QtCore import Signal
+from datetime import date
+
+from PySide6.QtWidgets import QTabWidget, QWidget, QGridLayout, QTableView, QHeaderView, QLabel
+from PySide6.QtCore import Signal, Qt
 
 from controller import actions
 from models.table_models import DayCalTableModel, DayCalOthersTableModel, DayCalResultTableModel
@@ -13,6 +15,11 @@ class DayCal(QWidget):
     # 생성자
     def __init__(self, parent):
         super().__init__(parent)
+        # 인쇄시 표시하기 위한 날짜레이블
+        self.today = QLabel(date.today().strftime('%Y-%m-%d'))
+        self.today.setAlignment(Qt.AlignCenter)
+        self.setStyleSheet('QLabel{ font-size: 20px; border: 1px solid;}')
+
         # 선택된 셀의 합
         self.selected_total = 0
 
@@ -56,9 +63,13 @@ class DayCal(QWidget):
 
         # 테이블위젯 추가
         grid.addWidget(self.tables[0], 0, 0)
-        grid.addWidget(self.tables[1], 1, 0)
-        grid.addWidget(self.tables[2], 0, 1, 2, 1)
-        grid.setRowStretch(0, 5)
+        grid.addWidget(self.tables[1], 1, 0, 2, 1)
+        grid.addWidget(self.tables[2], 0, 1, 3, 1)
+        grid.addWidget(self.today, 2, 1)
+        self.today.hide()
+        grid.setRowStretch(0, 7)
+        grid.setRowStretch(1, 2)
+        grid.setRowStretch(2, 1)
         grid.setColumnStretch(0, 7.5)
         grid.setColumnStretch(1, 2.5)
 
@@ -81,7 +92,9 @@ class DayCal(QWidget):
     def print_daycal(self):
         for table in self.tables:
             table.clearSelection()
+        self.today.show()
         actions.daycal_print(self)
+        self.today.hide()
 
     def selection_changed(self, table_type):
         self.selected_total = self.tables[table_type].selected_total

@@ -10,7 +10,7 @@ from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy import and_
 
-from controller.db_manager import session
+from controller.db_manager import session, commit_db
 from models.db_models import DayCalOwner, DayCalOwnerValues, DayCalOtherValues, DayCalResult
 from widgets.simple import Dialog
 from widgets.date_query import DayCalQueryResult, DateSelect
@@ -172,10 +172,6 @@ def modify_owner(main_window, table_widget, name_data=None):
         session.rollback()
 
 
-def save():
-    session.commit()
-
-
 # 인쇄 기능
 def daycal_print(print_widget: QWidget):
     printer = QPrinter(QPrinter.HighResolution)
@@ -248,5 +244,5 @@ def date_query(parent, tab):
         if tab == 0:
             today = date_select.calendar.selectedDate().toString('yyyy-MM-dd')
             result = DayCalQueryResult(parent, get_daycal_owner_values(today), get_daycal_other_values(today), get_daycal_result(today), today)
-            result.submitted.connect(save)
+            result.submitted.connect(commit_db)
             result.show()

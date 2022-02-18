@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication
 
 from widgets import main_window
 from models.db_models import DayCalOwnerValues, DayCalOtherValues, DayCalResult
-from controller.db_manager import session
+from controller.db_manager import session, close_db
 
 if __name__ == '__main__':
     # 매달 5일이 되면 이번달의 데이터를 제외한 데이터를 모두 삭제
@@ -51,4 +51,6 @@ if __name__ == '__main__':
                       "}"
                       )
     screen = main_window.MainWindow()
-    sys.exit(app.exec())
+    result = app.exec()
+    close_db()
+    sys.exit(result)

@@ -29,3 +29,11 @@ def init_db():
 
 def close_db():
     session.close()
+
+
+def commit_db():
+    session.commit()
+
+
+def check_db():
+    return session.dirty
