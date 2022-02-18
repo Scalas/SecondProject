@@ -18,7 +18,7 @@ class DayCal(QWidget):
         # 인쇄시 표시하기 위한 날짜레이블
         self.today = QLabel(date.today().strftime('%Y-%m-%d'))
         self.today.setAlignment(Qt.AlignCenter)
-        self.setStyleSheet('QLabel{ font-size: 20px; border: 1px solid;}')
+        self.today.setStyleSheet('QLabel{ font-size: 20px; border: 1px solid;}')
 
         # 선택된 셀의 합
         self.selected_total = 0
@@ -90,9 +90,10 @@ class DayCal(QWidget):
 
     # 인쇄
     def print_daycal(self):
+        self.today.show()
         for table in self.tables:
             table.clearSelection()
-        self.today.show()
+            table.selectionModel().clearCurrentIndex()
         actions.daycal_print(self)
         self.today.hide()
 

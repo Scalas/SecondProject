@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton, QHeaderView, QHBoxLayout
+from datetime import date
+
+from PySide6.QtWidgets import QDialog, QGridLayout, QCalendarWidget, QPushButton, QHeaderView, QHBoxLayout, QLabel
 from PySide6.QtCore import Signal, Qt
 
 from widgets.simple import TableView, SelectedTotalLabel
@@ -15,6 +17,11 @@ class DayCalQueryResult(QDialog):
     # 생성자
     def __init__(self, parent, owner_values, other_values, result, today):
         super().__init__(parent)
+        # 인쇄시 표시하기 위한 날짜레이블
+        self.date = QLabel(date.today().strftime('%Y-%m-%d'))
+        self.date.setAlignment(Qt.AlignCenter)
+        self.date.setStyleSheet('QLabel{ font-size: 20px; border: 1px solid;}')
+
         # 화주별 데이터, 기타 데이터, 결과 데이터, 조회날짜를 인자로 받아온다
         self.owner_values = owner_values
         self.other_values = other_values
@@ -73,15 +80,24 @@ class DayCalQueryResult(QDialog):
 
         # 테이블위젯 추가
         grid.addWidget(self.tables[0], 0, 0)
-        grid.addWidget(self.tables[1], 1, 0)
-        grid.addWidget(self.tables[2], 0, 1, 2, 1)
+        grid.addWidget(self.tables[1], 1, 0, 2, 1)
+        grid.addWidget(self.tables[2], 0, 1, 3, 1)
+        grid.addWidget(self.date, 2, 1)
+        grid.addWidget(self.selected_total_label, 3, 0)
+        self.date.hide()
 
         # 버튼 추가
         self.buttons.addWidget(self.print_button)
         self.buttons.addWidget(self.save_button)
-        grid.addLayout(self.buttons, 2, 1)
-        grid.setRowStretch(0, 5)
-        grid.setColumnStretch(0, 5)
+        grid.addLayout(self.buttons, 3, 1)
+
+        # stretch 조정
+        grid.setRowStretch(0, 7)
+        grid.setRowStretch(1, 2)
+        grid.setRowStretch(2, 1)
+        grid.setColumnStretch(0, 7.5)
+        grid.setColumnStretch(1, 2.5)
+        grid.setRowStretch(3, 1)
 
         # 선택된 셀의 합계 추가
         grid.addWidget(self.selected_total_label, 2, 0)
@@ -103,10 +119,15 @@ class DayCalQueryResult(QDialog):
         self.save_button.hide()
         self.print_button.hide()
         self.selected_total_label.hide()
+        self.date.show()
+        for table in self.tables:
+            table.clearSelection()
+            table.selectionModel().clearCurrentIndex()
         actions.daycal_print(self)
         self.save_button.show()
         self.print_button.show()
         self.selected_total_label.show()
+        self.date.hide()
 
     # 선택된 셀의 합계 갱신
     def selection_changed(self, table_type):
