@@ -1,9 +1,11 @@
-from PySide6.QtCore import QObject, Signal
+from datetime import datetime
+
+from PySide6.QtCore import QObject, Signal, QTimer
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QGridLayout
 
 from controller.config_manager import set_geometry, get_geometry
-from controller.db_manager import close_db, commit_db, check_db
+from controller.db_manager import commit_db, check_db
 from controller import actions
 from widgets.docs_window import DocTab
 from widgets.simple import TimeLabel, StatusBar, SelectedTotalLabel, SaveDialog
@@ -16,18 +18,20 @@ class MainWindow(QMainWindow, QObject):
         self.central_widget = CentralWidget(self)
         self.selected_total_label = SelectedTotalLabel(self)
         self.central_widget.selected_total_changed.connect(lambda: self.selected_total_label.set_sum(self.central_widget.selected_total))
+        self.auto_save_timer = QTimer(self)
+        self.auto_save_timer.timeout.connect(self.save)
+        self.auto_save_timer.start(300000)
+        self.status_bar = self.statusBar()
+        self.status_bar.setStyleSheet("font-size: 17px;")
         self.init_ui()
 
     # ui 초기화
     def init_ui(self):
-        # 상태표시줄
-        status_bar = self.statusBar()
-
         # 시간 레이블 추가
         time_label = TimeLabel(self)
         time_label.clicked.connect(lambda: actions.date_query(self, self.central_widget.get_selected_tab()))
-        status_bar.addPermanentWidget(self.selected_total_label)
-        status_bar.addWidget(time_label)
+        self.status_bar.addPermanentWidget(self.selected_total_label)
+        self.status_bar.addWidget(time_label)
 
         # 메뉴바 생성
         menu_bar = self.menuBar()
@@ -74,7 +78,7 @@ class MainWindow(QMainWindow, QObject):
         save_data = QAction(QIcon('src/img/save_icon.png'), '저장하기', self)
         save_data.setShortcut('Ctrl+S')
         save_data.setStatusTip('화주 이름 변경')
-        save_data.triggered.connect(commit_db())
+        save_data.triggered.connect(self.save)
         file_menu.addAction(save_data)
         tool_bar.addAction(save_data)
 
@@ -135,6 +139,11 @@ class MainWindow(QMainWindow, QObject):
         status_bar = StatusBar()
         self.setStatusBar(status_bar)
         return status_bar
+
+    # 저장
+    def save(self):
+        commit_db()
+        self.status_bar.showMessage(">> %s 작업 내용이 저장되었습니다." % datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 3000)
 
 
 # 중앙 위젯
